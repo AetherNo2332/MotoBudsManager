@@ -49,6 +49,27 @@ public sealed class RequestDispatcherTests
     }
 
     [Fact]
+    public async Task MessageReceived_ForwardsUnsolicitedBatteryNotification()
+    {
+        await using var transport = new FakeTransport(_ => null);
+        await transport.ConnectAsync(CancellationToken.None);
+        await using var dispatcher = new RequestDispatcher(transport, TimeSpan.FromSeconds(1));
+        PduMessage? received = null;
+        dispatcher.MessageReceived += (_, args) => received = args.Message;
+
+        transport.Emit(new PduMessage(
+            BatteryProtocol.BatteryLevelChangedOpcode,
+            PduType.NotificationNoAck,
+            0,
+            0,
+            [0x14, 0x17, 0x36]));
+
+        Assert.NotNull(received);
+        Assert.Equal(BatteryProtocol.BatteryLevelChangedOpcode, received.Opcode);
+        Assert.Equal(new byte[] { 0x14, 0x17, 0x36 }, received.Payload);
+    }
+
+    [Fact]
     public async Task SetAncOn_AckThenReadback_ReturnsVerified()
     {
         var ancOn = false;
@@ -241,6 +262,8 @@ public sealed class RequestDispatcherTests
     {
         public event EventHandler<PduReceivedEventArgs>? PduReceived;
 
+        public event EventHandler? Disconnected;
+
         public TransportKind Kind => TransportKind.Rfcomm;
 
         public bool IsConnected { get; private set; }
@@ -266,8 +289,11 @@ public sealed class RequestDispatcherTests
         public Task DisconnectAsync()
         {
             IsConnected = false;
+            Disconnected?.Invoke(this, EventArgs.Empty);
             return Task.CompletedTask;
         }
+
+        public void Emit(PduMessage message) => PduReceived?.Invoke(this, new(message));
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }

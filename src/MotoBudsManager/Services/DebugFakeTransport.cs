@@ -17,6 +17,8 @@ internal sealed class DebugFakeTransport(DiagnosticLogService log) : IMotoBudsTr
 
     public event EventHandler<PduReceivedEventArgs>? PduReceived;
 
+    public event EventHandler? Disconnected;
+
     public TransportKind Kind => TransportKind.Rfcomm;
 
     public bool IsConnected { get; private set; }
@@ -81,6 +83,7 @@ internal sealed class DebugFakeTransport(DiagnosticLogService log) : IMotoBudsTr
     public Task DisconnectAsync()
     {
         IsConnected = false;
+        Disconnected?.Invoke(this, EventArgs.Empty);
         log.Write("DEBUG fake transport disconnected.");
         return Task.CompletedTask;
     }

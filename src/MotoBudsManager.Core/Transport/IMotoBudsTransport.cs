@@ -12,6 +12,8 @@ public interface IMotoBudsTransport : IAsyncDisposable
 {
     event EventHandler<PduReceivedEventArgs>? PduReceived;
 
+    event EventHandler? Disconnected;
+
     TransportKind Kind { get; }
 
     bool IsConnected { get; }

@@ -5,12 +5,23 @@ using MotoBudsManager.Core.Models;
 
 namespace MotoBudsManager.Services;
 
+public sealed class InAppLowBatteryRequestedEventArgs(MotoBudsDevice device, int lowestPercent) : EventArgs
+{
+    public MotoBudsDevice Device { get; } = device;
+
+    public int LowestPercent { get; } = lowestPercent;
+}
+
 public sealed class LowBatteryNotificationService(
     DiagnosticLogService diagnostics,
     bool suppressSystemNotifications = false)
 {
+    private const string NotificationTag = "low-battery";
     private readonly LowBatteryAlertTracker _tracker = new();
+    private readonly Lock _trackerLock = new();
     private bool _registered;
+
+    public event EventHandler<InAppLowBatteryRequestedEventArgs>? InAppLowBatteryRequested;
 
     public void Initialize()
     {
@@ -30,20 +41,35 @@ public sealed class LowBatteryNotificationService(
         }
     }
 
-    public void Evaluate(MotoBudsDevice device, EarbudBatteryState state)
+    public async Task EvaluateAsync(MotoBudsDevice device, EarbudBatteryState state)
     {
-        var alert = _tracker.Evaluate(device.BluetoothAddress.ToString("X12"), state);
-        if (alert is null)
+        LowBatteryEvaluation evaluation;
+        lock (_trackerLock)
+        {
+            evaluation = _tracker.Evaluate(DeviceKey(device), state);
+        }
+
+        if (evaluation.ShowInAppToast && evaluation.LowestPercent is { } toastPercent)
+        {
+            InAppLowBatteryRequested?.Invoke(this, new(device, toastPercent));
+        }
+
+        if (evaluation.SystemAction == LowBatterySystemAction.None ||
+            evaluation.LowestPercent is not { } lowestPercent)
         {
             return;
         }
 
-        var components = FormatComponents(alert.Components);
+        if (evaluation.SystemAction == LowBatterySystemAction.Cancel)
+        {
+            await RemoveSystemNotificationAsync(device).ConfigureAwait(false);
+            return;
+        }
+
         var body = string.Format(
             LocalizationService.Get("LowBatteryNotificationBody"),
             ProductCatalog.Get(device.ModelId, device.ColorId).ProductName,
-            components,
-            alert.LowestPercent);
+            lowestPercent);
 
         if (suppressSystemNotifications)
         {
@@ -57,6 +83,8 @@ public sealed class LowBatteryNotificationService(
                 .AddText(LocalizationService.Get("LowBatteryNotificationTitle"))
                 .AddText(body)
                 .BuildNotification();
+            notification.Tag = NotificationTag;
+            notification.Group = DeviceKey(device);
             AppNotificationManager.Default.Show(notification);
         }
         catch (Exception exception)
@@ -65,7 +93,17 @@ public sealed class LowBatteryNotificationService(
         }
     }
 
-    public void Shutdown()
+    public async Task ResetAsync(MotoBudsDevice device)
+    {
+        lock (_trackerLock)
+        {
+            _tracker.Reset(DeviceKey(device));
+        }
+
+        await RemoveSystemNotificationAsync(device).ConfigureAwait(false);
+    }
+
+    public async Task ShutdownAsync()
     {
         if (!_registered)
         {
@@ -74,6 +112,7 @@ public sealed class LowBatteryNotificationService(
 
         try
         {
+            await AppNotificationManager.Default.RemoveAllAsync();
             AppNotificationManager.Default.Unregister();
         }
         catch (Exception exception)
@@ -86,21 +125,22 @@ public sealed class LowBatteryNotificationService(
         }
     }
 
-    private static string FormatComponents(BatteryComponentKind components)
+    private async Task RemoveSystemNotificationAsync(MotoBudsDevice device)
     {
-        var names = new List<string>(3);
-        if ((components & BatteryComponentKind.Left) != 0)
+        if (suppressSystemNotifications || !_registered)
         {
-            names.Add(LocalizationService.Get("BatteryComponentLeft"));
+            return;
         }
-        if ((components & BatteryComponentKind.Right) != 0)
+
+        try
         {
-            names.Add(LocalizationService.Get("BatteryComponentRight"));
+            await AppNotificationManager.Default.RemoveByTagAndGroupAsync(NotificationTag, DeviceKey(device));
         }
-        if ((components & BatteryComponentKind.Case) != 0)
+        catch (Exception exception)
         {
-            names.Add(LocalizationService.Get("BatteryComponentCase"));
+            diagnostics.Write($"Low-battery notification removal failed: {exception.Message}");
         }
-        return string.Join(LocalizationService.Get("BatteryComponentSeparator"), names);
     }
+
+    private static string DeviceKey(MotoBudsDevice device) => device.BluetoothAddress.ToString("X12");
 }

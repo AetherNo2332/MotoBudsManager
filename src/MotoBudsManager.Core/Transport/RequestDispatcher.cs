@@ -11,6 +11,8 @@ public sealed class RequestDispatcher : IAsyncDisposable
     private PendingRequest? _pending;
     private ushort _nextSequence;
 
+    public event EventHandler<PduReceivedEventArgs>? MessageReceived;
+
     public RequestDispatcher(IMotoBudsTransport transport, TimeSpan? timeout = null)
     {
         _transport = transport;
@@ -83,6 +85,8 @@ public sealed class RequestDispatcher : IAsyncDisposable
                 pending.Completion.TrySetResult(args.Message);
             }
         }
+
+        MessageReceived?.Invoke(this, args);
     }
 
     private sealed record PendingRequest(

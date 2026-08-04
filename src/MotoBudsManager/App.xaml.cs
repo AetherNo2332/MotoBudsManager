@@ -4,6 +4,8 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.Windows.AppLifecycle;
+using MotoBudsManager.Core;
 using MotoBudsManager.Services;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -16,6 +18,9 @@ namespace MotoBudsManager;
 /// </summary>
 public partial class App : Application
 {
+    private readonly AppInstance _mainInstance;
+    private int _activationPending;
+
     public static bool IsTestMode
     {
         get
@@ -38,6 +43,10 @@ public partial class App : Application
 
     public static LowBatteryNotificationService LowBatteryNotifications { get; } =
         new(Diagnostics, IsTestMode);
+
+    public static string AppVersionText { get; } = PackageVersionReader.GetDisplayText(
+        "Moto Buds Manager",
+        Path.Combine(AppContext.BaseDirectory, "AppxManifest.xml"));
 
     /// <summary>
     /// The main application window. Use <c>App.Window</c> from any class that needs
@@ -65,6 +74,8 @@ public partial class App : Application
     /// </summary>
     public App()
     {
+        _mainInstance = Program.MainInstance;
+        _mainInstance.Activated += OnMainInstanceActivated;
         InitializeComponent();
     }
 
@@ -81,5 +92,29 @@ public partial class App : Application
             ? "Moto Buds Manager started in DEBUG fake-device mode."
             : "Moto Buds Manager started. No telemetry or network service is enabled.");
         Window.Activate();
+        if (Interlocked.Exchange(ref _activationPending, 0) != 0)
+        {
+            RestoreExistingWindow();
+        }
+    }
+
+    private void OnMainInstanceActivated(object? sender, AppActivationArguments args)
+    {
+        if (DispatcherQueue is null || Window is not MainWindow)
+        {
+            Interlocked.Exchange(ref _activationPending, 1);
+            return;
+        }
+
+        DispatcherQueue.TryEnqueue(RestoreExistingWindow);
+    }
+
+    private static void RestoreExistingWindow()
+    {
+        Diagnostics.Write("A secondary launch was redirected to the existing app instance.");
+        if (Window is MainWindow window)
+        {
+            window.RestoreFromActivation();
+        }
     }
 }

@@ -11,7 +11,9 @@ An unofficial, offline WinUI 3 desktop application for managing Motorola earbuds
 - Discovers paired earbuds without performing in-app pairing.
 - Shows model-matched product artwork, battery level, and per-component charging state.
 - Provides hardware-tested ANC, spatial audio, Hi-Res, gaming, enhancement, in-ear detection, find-earbud, fit-test, and dual-connection controls for XT2443-1.
-- Sends low-battery Windows notifications below 20% while suppressing alerts for charging components.
+- Uses the proprietary battery protocol: a connection snapshot plus real-time firmware updates, with no fixed polling.
+- Shows one in-app warning at 6–10%; at 0–5%, sends a Windows notification only when a low earbud is not charging. The case is excluded.
+- Keeps an active earbud session running in the notification area when the window is closed; use the tray menu to reopen or exit.
 - Supports English, Simplified Chinese, light/dark themes, and a responsive 760 × 600 minimum window.
 - Keeps diagnostics in memory, masks Bluetooth addresses, and performs no telemetry or network upload.
 

@@ -16,8 +16,11 @@ public sealed class RfcommTransport(MotoBudsDevice device, DiagnosticLogService 
     private DataReader? _reader;
     private DataWriter? _writer;
     private Task? _receiveTask;
+    private int _disconnectSignaled;
 
     public event EventHandler<PduReceivedEventArgs>? PduReceived;
+
+    public event EventHandler? Disconnected;
 
     public TransportKind Kind => TransportKind.Rfcomm;
 
@@ -40,6 +43,7 @@ public sealed class RfcommTransport(MotoBudsDevice device, DiagnosticLogService 
             .AsTask(cancellationToken).ConfigureAwait(false);
         _reader = new DataReader(_socket.InputStream) { InputStreamOptions = InputStreamOptions.Partial };
         _writer = new DataWriter(_socket.OutputStream);
+        _disconnectSignaled = 0;
         IsConnected = true;
         log.Write($"RFCOMM connected to {device.Name} ({device.MaskedAddress}).");
         _receiveTask = ReceiveLoopAsync(_receiveCancellation.Token);
@@ -67,7 +71,7 @@ public sealed class RfcommTransport(MotoBudsDevice device, DiagnosticLogService 
             return;
         }
 
-        IsConnected = false;
+        SignalDisconnected();
         _receiveCancellation.Cancel();
         _socket?.Dispose();
         if (_receiveTask is not null)
@@ -99,23 +103,48 @@ public sealed class RfcommTransport(MotoBudsDevice device, DiagnosticLogService 
 
     private async Task ReceiveLoopAsync(CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested && _reader is not null)
+        try
         {
-            var loaded = await _reader.LoadAsync(1024).AsTask(cancellationToken).ConfigureAwait(false);
-            if (loaded == 0)
+            while (!cancellationToken.IsCancellationRequested && _reader is not null)
             {
-                IsConnected = false;
-                log.Write("RFCOMM remote endpoint closed the connection.");
-                return;
-            }
+                var loaded = await _reader.LoadAsync(1024).AsTask(cancellationToken).ConfigureAwait(false);
+                if (loaded == 0)
+                {
+                    log.Write("RFCOMM remote endpoint closed the connection.");
+                    return;
+                }
 
-            var bytes = new byte[loaded];
-            _reader.ReadBytes(bytes);
-            foreach (var message in _parser.Feed(bytes))
-            {
-                log.Write($"RX SPP opcode=0x{message.Opcode:X4} sequence={message.Sequence} result=0x{message.Result:X2}.");
-                PduReceived?.Invoke(this, new(message));
+                var bytes = new byte[loaded];
+                _reader.ReadBytes(bytes);
+                foreach (var message in _parser.Feed(bytes))
+                {
+                    log.Write($"RX SPP opcode=0x{message.Opcode:X4} sequence={message.Sequence} result=0x{message.Result:X2}.");
+                    PduReceived?.Invoke(this, new(message));
+                }
             }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        catch (ObjectDisposedException) when (cancellationToken.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            log.Write($"RFCOMM receive loop failed: {exception.Message}");
+        }
+        finally
+        {
+            SignalDisconnected();
+        }
+    }
+
+    private void SignalDisconnected()
+    {
+        IsConnected = false;
+        if (Interlocked.Exchange(ref _disconnectSignaled, 1) == 0)
+        {
+            Disconnected?.Invoke(this, EventArgs.Empty);
         }
     }
 }

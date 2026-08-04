@@ -96,18 +96,10 @@ public sealed class MotoBudsClient(
     public async Task<EarbudBatteryState> GetBatteryStateAsync(CancellationToken cancellationToken = default)
     {
         EnsureXt2443Target();
-        var response = await dispatcher.SendAsync(0x0005, ReadOnlyMemory<byte>.Empty, cancellationToken)
+        var response = await dispatcher.SendAsync(BatteryProtocol.GetBatteryLevelOpcode, ReadOnlyMemory<byte>.Empty, cancellationToken)
             .ConfigureAwait(false);
         EnsureSuccessful(response);
-        if (response.Payload.Length < 3)
-        {
-            throw new InvalidDataException("The battery response did not contain left, right, and case bytes.");
-        }
-
-        return new EarbudBatteryState(
-            DecodeBattery(response.Payload[0]),
-            DecodeBattery(response.Payload[1]),
-            DecodeBattery(response.Payload[2]));
+        return BatteryProtocol.Decode(response.Payload);
     }
 
     public Task<bool> GetXt2443ToggleAsync(
@@ -361,10 +353,6 @@ public sealed class MotoBudsClient(
             throw new NotSupportedException("Hardware-verified controls require an XT2443-1 RFCOMM device.");
         }
     }
-
-    private static BatteryComponentState DecodeBattery(byte raw) => raw == 0xFF
-        ? new(null, false)
-        : new(Math.Min(raw & 0x7F, 100), (raw & 0x80) != 0);
 
     private static void EnsureSuccessful(PduMessage response)
     {

@@ -8,12 +8,28 @@ using Windows.System;
 
 namespace MotoBudsManager.ViewModels;
 
-public partial class MainPageViewModel(
-    DeviceDiscoveryService discovery,
-    MotoBudsSessionService session,
-    DiagnosticLogService diagnostics,
-    LowBatteryNotificationService lowBatteryNotifications) : ObservableObject
+public partial class MainPageViewModel : ObservableObject
 {
+    private readonly DeviceDiscoveryService discovery;
+    private readonly MotoBudsSessionService session;
+    private readonly DiagnosticLogService diagnostics;
+    private readonly LowBatteryNotificationService lowBatteryNotifications;
+
+    public MainPageViewModel(
+        DeviceDiscoveryService discovery,
+        MotoBudsSessionService session,
+        DiagnosticLogService diagnostics,
+        LowBatteryNotificationService lowBatteryNotifications)
+    {
+        this.discovery = discovery;
+        this.session = session;
+        this.diagnostics = diagnostics;
+        this.lowBatteryNotifications = lowBatteryNotifications;
+        session.BatteryStateChanged += OnBatteryStateChanged;
+        session.Disconnected += OnSessionDisconnected;
+        lowBatteryNotifications.InAppLowBatteryRequested += OnInAppLowBatteryRequested;
+    }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanConnect))]
     [NotifyPropertyChangedFor(nameof(DeviceName))]
@@ -529,10 +545,14 @@ public partial class MainPageViewModel(
 
     private async Task LoadXt2443StateAsync(MotoBudsClient client)
     {
-        await TryLoadAsync("battery", async () =>
+        await TryLoadAsync("battery", () =>
         {
-            var state = await client.GetBatteryStateAsync();
-            ApplyBatteryState(SelectedDevice!, state);
+            if (SelectedDevice is { } device && session.TryGetCachedBatteryState(out var state))
+            {
+                ApplyBatteryState(device, state);
+            }
+
+            return Task.CompletedTask;
         });
         await TryLoadAsync("ANC", async () => AncMode = (await client.GetAncStateAsync()).Mode);
         await TryLoadAsync("adaptive hearing", async () =>
@@ -583,13 +603,10 @@ public partial class MainPageViewModel(
                 temporaryConnection = true;
             }
 
-            if (session.Client is null)
+            if (session.TryGetCachedBatteryState(out var state))
             {
-                return;
+                ApplyBatteryState(card.Device, state);
             }
-
-            var state = await session.Client.GetBatteryStateAsync();
-            ApplyBatteryState(card.Device, state);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -620,7 +637,64 @@ public partial class MainPageViewModel(
             CaseBatteryCharging = state.Case.IsCharging;
         }
 
-        lowBatteryNotifications.Evaluate(device, state);
+        _ = lowBatteryNotifications.EvaluateAsync(device, state);
+    }
+
+    public async Task RefreshBatteryFromCacheAsync()
+    {
+        if (!session.IsConnected || session.Device is not { } device)
+        {
+            return;
+        }
+
+        try
+        {
+            var state = await session.GetBatteryStateAsync();
+            if (state is not null)
+            {
+                ApplyBatteryState(device, state);
+            }
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            diagnostics.Write($"Battery cache refresh failed for {device.ModelId}: {exception.Message}");
+        }
+    }
+
+    private void OnBatteryStateChanged(object? sender, BatteryStateChangedEventArgs args) =>
+        RunOnUiThread(() => ApplyBatteryState(args.Device, args.State));
+
+    private void OnSessionDisconnected(object? sender, SessionDisconnectedEventArgs args)
+    {
+        _ = lowBatteryNotifications.ResetAsync(args.Device);
+        RunOnUiThread(() =>
+        {
+            if (SelectedDevice?.BluetoothAddress == args.Device.BluetoothAddress)
+            {
+                IsConnected = false;
+                ResetXt2443State();
+            }
+        });
+    }
+
+    private void OnInAppLowBatteryRequested(object? sender, InAppLowBatteryRequestedEventArgs args) =>
+        RunOnUiThread(() => ShowStatus(
+            LocalizationService.Get("LowBatteryToastTitle"),
+            string.Format(
+                LocalizationService.Get("LowBatteryToastBody"),
+                ProductCatalog.Get(args.Device.ModelId, args.Device.ColorId).ProductName,
+                args.LowestPercent)));
+
+    private static void RunOnUiThread(Action action)
+    {
+        if (App.DispatcherQueue.HasThreadAccess)
+        {
+            action();
+        }
+        else
+        {
+            App.DispatcherQueue.TryEnqueue(() => action());
+        }
     }
 
     private void SetToggleState(Xt2443ToggleFeature feature, bool enabled)

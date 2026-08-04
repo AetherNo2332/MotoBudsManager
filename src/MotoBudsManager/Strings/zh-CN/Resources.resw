@@ -169,5 +169,9 @@
   <data name="BatteryComponentCase" xml:space="preserve"><value>耳机盒</value></data>
   <data name="BatteryComponentSeparator" xml:space="preserve"><value>、</value></data>
   <data name="LowBatteryNotificationTitle" xml:space="preserve"><value>耳机电量低</value></data>
-  <data name="LowBatteryNotificationBody" xml:space="preserve"><value>{0} 的{1}电量低于 20%（当前 {2}%）。</value></data>
+  <data name="LowBatteryNotificationBody" xml:space="preserve"><value>{0} 左右耳最低电量仅剩 {1}%。</value></data>
+  <data name="LowBatteryToastTitle" xml:space="preserve"><value>耳机电量偏低</value></data>
+  <data name="LowBatteryToastBody" xml:space="preserve"><value>{0} 左右耳最低电量为 {1}%，请及时充电。</value></data>
+  <data name="TrayOpenMenuItem.Text" xml:space="preserve"><value>打开 Moto Buds Manager</value></data>
+  <data name="TrayExitMenuItem.Text" xml:space="preserve"><value>退出</value></data>
 </root>

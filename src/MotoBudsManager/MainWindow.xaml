@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:MotoBudsManager"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:tb="using:H.NotifyIcon"
     Title="Moto Buds Manager"
     mc:Ignorable="d">
     <Window.SystemBackdrop>
@@ -17,6 +18,21 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+
+        <tb:TaskbarIcon
+            x:Name="TrayIcon"
+            IconSource="ms-appx:///Assets/AppIcon.ico"
+            LeftClickCommand="{x:Bind RestoreWindowCommand}"
+            MenuActivation="RightClick"
+            ToolTipText="Moto Buds Manager">
+            <tb:TaskbarIcon.ContextFlyout>
+                <MenuFlyout>
+                    <MenuFlyoutItem x:Uid="TrayOpenMenuItem" Command="{x:Bind RestoreWindowCommand}" />
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutItem x:Uid="TrayExitMenuItem" Command="{x:Bind ExitApplicationCommand}" />
+                </MenuFlyout>
+            </tb:TaskbarIcon.ContextFlyout>
+        </tb:TaskbarIcon>
 
         <TitleBar x:Name="AppTitleBar" Title="Moto Buds Manager">
             <TitleBar.IconSource>

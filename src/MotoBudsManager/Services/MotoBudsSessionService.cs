@@ -4,11 +4,42 @@ using MotoBudsManager.Core.Transport;
 
 namespace MotoBudsManager.Services;
 
+public enum BatteryUpdateSource
+{
+    InitialSnapshot,
+    FirmwareNotification,
+    Cache,
+}
+
+public sealed class BatteryStateChangedEventArgs(
+    MotoBudsDevice device,
+    EarbudBatteryState state,
+    BatteryUpdateSource source) : EventArgs
+{
+    public MotoBudsDevice Device { get; } = device;
+
+    public EarbudBatteryState State { get; } = state;
+
+    public BatteryUpdateSource Source { get; } = source;
+}
+
+public sealed class SessionDisconnectedEventArgs(MotoBudsDevice device) : EventArgs
+{
+    public MotoBudsDevice Device { get; } = device;
+}
+
 public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTestMode = false) : IAsyncDisposable
 {
     private readonly bool _isTestMode = isTestMode;
+    private readonly BatteryStateCache _batteryCache = new();
+    private readonly SemaphoreSlim _batteryQueryGate = new(1, 1);
     private IMotoBudsTransport? _transport;
     private RequestDispatcher? _dispatcher;
+    private int _disconnectRaised;
+
+    public event EventHandler<BatteryStateChangedEventArgs>? BatteryStateChanged;
+
+    public event EventHandler<SessionDisconnectedEventArgs>? Disconnected;
 
     public MotoBudsDevice? Device { get; private set; }
 
@@ -31,17 +62,60 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
                 ? new RfcommTransport(device, log)
                 : new BleGattTransport(device, log);
         }
+
+        _transport.Disconnected += OnTransportDisconnected;
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromSeconds(10));
         await _transport.ConnectAsync(timeout.Token).ConfigureAwait(false);
         _dispatcher = new RequestDispatcher(_transport, TimeSpan.FromSeconds(5));
+        _dispatcher.MessageReceived += OnMessageReceived;
         Device = device;
         Client = new MotoBudsClient(_dispatcher, device);
+        Volatile.Write(ref _disconnectRaised, 0);
+
+        try
+        {
+            await QueryBatterySnapshotAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            log.Write($"Initial battery snapshot failed for {device.ModelId}: {exception.Message}");
+        }
+    }
+
+    public async Task<EarbudBatteryState?> GetBatteryStateAsync(CancellationToken cancellationToken = default)
+    {
+        var device = Device;
+        if (device is null || !IsConnected)
+        {
+            return null;
+        }
+
+        var key = DeviceKey(device);
+        if (_batteryCache.TryGet(key, out var cached))
+        {
+            return cached;
+        }
+
+        return await QueryBatterySnapshotAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public bool TryGetCachedBatteryState(out EarbudBatteryState state)
+    {
+        var device = Device;
+        if (device is not null && _batteryCache.TryGet(DeviceKey(device), out state!))
+        {
+            return true;
+        }
+
+        state = null!;
+        return false;
     }
 
     public async Task DisconnectAsync()
     {
-        if (Client is { HasTransientActions: true } && Device?.IsXt2443ControlTarget == true)
+        var disconnectedDevice = Device;
+        if (Client is { HasTransientActions: true } && disconnectedDevice?.IsXt2443ControlTarget == true)
         {
             using var stopTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(1));
             try
@@ -60,6 +134,20 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
 
         Client = null;
         Device = null;
+        if (disconnectedDevice is not null)
+        {
+            _batteryCache.Remove(DeviceKey(disconnectedDevice));
+        }
+
+        if (_dispatcher is not null)
+        {
+            _dispatcher.MessageReceived -= OnMessageReceived;
+        }
+        if (_transport is not null)
+        {
+            _transport.Disconnected -= OnTransportDisconnected;
+        }
+
         if (_dispatcher is not null)
         {
             await _dispatcher.DisposeAsync().ConfigureAwait(false);
@@ -71,7 +159,97 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
             await _transport.DisposeAsync().ConfigureAwait(false);
             _transport = null;
         }
+
+        if (disconnectedDevice is not null)
+        {
+            RaiseDisconnected(disconnectedDevice);
+        }
     }
 
-    public async ValueTask DisposeAsync() => await DisconnectAsync().ConfigureAwait(false);
+    public async ValueTask DisposeAsync()
+    {
+        await DisconnectAsync().ConfigureAwait(false);
+        _batteryQueryGate.Dispose();
+    }
+
+    private async Task<EarbudBatteryState?> QueryBatterySnapshotAsync(CancellationToken cancellationToken)
+    {
+        await _batteryQueryGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var device = Device;
+            var client = Client;
+            if (device is null || client is null || !IsConnected || !device.IsXt2443ControlTarget)
+            {
+                return null;
+            }
+
+            var key = DeviceKey(device);
+            if (_batteryCache.TryGet(key, out var cached))
+            {
+                return cached;
+            }
+
+            var state = await client.GetBatteryStateAsync(cancellationToken).ConfigureAwait(false);
+            UpdateBattery(device, state, BatteryUpdateSource.InitialSnapshot);
+            return state;
+        }
+        finally
+        {
+            _batteryQueryGate.Release();
+        }
+    }
+
+    private void OnMessageReceived(object? sender, PduReceivedEventArgs args)
+    {
+        var device = Device;
+        if (device is null || args.Message.Opcode != BatteryProtocol.BatteryLevelChangedOpcode)
+        {
+            return;
+        }
+
+        if (!BatteryProtocol.TryDecode(args.Message.Payload, out var state))
+        {
+            log.Write($"Rejected malformed battery notification for {device.ModelId}.");
+            return;
+        }
+
+        UpdateBattery(device, state, BatteryUpdateSource.FirmwareNotification);
+    }
+
+    private void UpdateBattery(
+        MotoBudsDevice device,
+        EarbudBatteryState state,
+        BatteryUpdateSource source)
+    {
+        _batteryCache.Set(DeviceKey(device), state);
+        log.Write($"Battery state updated from {source}: left={Format(state.Left)}, right={Format(state.Right)}, case={Format(state.Case)}.");
+        BatteryStateChanged?.Invoke(this, new(device, state, source));
+    }
+
+    private void OnTransportDisconnected(object? sender, EventArgs args)
+    {
+        var device = Device;
+        if (device is null)
+        {
+            return;
+        }
+
+        _batteryCache.Remove(DeviceKey(device));
+        RaiseDisconnected(device);
+    }
+
+    private void RaiseDisconnected(MotoBudsDevice device)
+    {
+        if (Interlocked.Exchange(ref _disconnectRaised, 1) == 0)
+        {
+            Disconnected?.Invoke(this, new(device));
+        }
+    }
+
+    private static string DeviceKey(MotoBudsDevice device) => device.BluetoothAddress.ToString("X12");
+
+    private static string Format(BatteryComponentState component) => component.Percent is { } percent
+        ? $"{percent}%{(component.IsCharging ? "+" : string.Empty)}"
+        : "unavailable";
 }

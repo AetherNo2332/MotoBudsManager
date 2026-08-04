@@ -1,60 +1,80 @@
 namespace MotoBudsManager.Core;
 
-[Flags]
-public enum BatteryComponentKind
+public enum LowBatterySystemAction
 {
-    None = 0,
-    Left = 1,
-    Right = 2,
-    Case = 4,
+    None,
+    Show,
+    Cancel,
 }
 
-public sealed record LowBatteryAlert(BatteryComponentKind Components, int LowestPercent);
-
-public sealed class LowBatteryAlertTracker(int thresholdPercent = 20)
+public sealed record LowBatteryEvaluation(
+    LowBatterySystemAction SystemAction,
+    bool ShowInAppToast,
+    int? LowestPercent)
 {
-    private readonly Dictionary<string, BatteryComponentKind> _activeAlerts = [];
+    public static LowBatteryEvaluation NoChange { get; } = new(LowBatterySystemAction.None, false, null);
+}
 
-    public LowBatteryAlert? Evaluate(string deviceKey, EarbudBatteryState state)
+public sealed class LowBatteryAlertTracker
+{
+    private readonly Dictionary<string, AlertState> _states = [];
+
+    public LowBatteryEvaluation Evaluate(string deviceKey, EarbudBatteryState battery)
     {
-        var lowComponents = GetLowComponents(state);
-        _activeAlerts.TryGetValue(deviceKey, out var previouslyAlerted);
-        _activeAlerts[deviceKey] = lowComponents;
-
-        var newlyLow = lowComponents & ~previouslyAlerted;
-        if (newlyLow == BatteryComponentKind.None)
+        if (battery.Left.Percent is not { } left || battery.Right.Percent is not { } right)
         {
-            return null;
+            return LowBatteryEvaluation.NoChange;
         }
 
-        var percentages = new List<int>(3);
-        AddPercent(percentages, newlyLow, BatteryComponentKind.Left, state.Left);
-        AddPercent(percentages, newlyLow, BatteryComponentKind.Right, state.Right);
-        AddPercent(percentages, newlyLow, BatteryComponentKind.Case, state.Case);
-        return new(newlyLow, percentages.Min());
-    }
-
-    private BatteryComponentKind GetLowComponents(EarbudBatteryState state)
-    {
-        var result = BatteryComponentKind.None;
-        result |= IsLow(state.Left) ? BatteryComponentKind.Left : BatteryComponentKind.None;
-        result |= IsLow(state.Right) ? BatteryComponentKind.Right : BatteryComponentKind.None;
-        result |= IsLow(state.Case) ? BatteryComponentKind.Case : BatteryComponentKind.None;
-        return result;
-    }
-
-    private bool IsLow(BatteryComponentState component) =>
-        component.Percent is { } percent && percent < thresholdPercent && !component.IsCharging;
-
-    private static void AddPercent(
-        ICollection<int> percentages,
-        BatteryComponentKind selected,
-        BatteryComponentKind component,
-        BatteryComponentState state)
-    {
-        if ((selected & component) != 0 && state.Percent is { } percent)
+        if (!_states.TryGetValue(deviceKey, out var state))
         {
-            percentages.Add(percent);
+            state = new AlertState();
+            _states[deviceKey] = state;
         }
+
+        var lowest = Math.Min(left, right);
+        var needsSystemWarning = lowest <= 5 &&
+            (NeedsWarning(left, battery.Left.IsCharging) ||
+             NeedsWarning(right, battery.Right.IsCharging));
+
+        var systemAction = LowBatterySystemAction.None;
+        if (needsSystemWarning && !state.SystemNotificationShown)
+        {
+            state.SystemNotificationShown = true;
+            systemAction = LowBatterySystemAction.Show;
+        }
+        else if (!needsSystemWarning && state.SystemNotificationShown)
+        {
+            state.SystemNotificationShown = false;
+            systemAction = LowBatterySystemAction.Cancel;
+        }
+
+        var showToast = lowest is >= 6 and <= 10 && !state.InAppToastShown;
+        if (showToast)
+        {
+            state.InAppToastShown = true;
+        }
+
+        return new(systemAction, showToast, lowest);
+    }
+
+    public bool Reset(string deviceKey)
+    {
+        if (!_states.Remove(deviceKey, out var state))
+        {
+            return false;
+        }
+
+        return state.SystemNotificationShown;
+    }
+
+    private static bool NeedsWarning(int percent, bool isCharging) =>
+        percent is >= 0 and <= 5 && !isCharging;
+
+    private sealed class AlertState
+    {
+        public bool SystemNotificationShown { get; set; }
+
+        public bool InAppToastShown { get; set; }
     }
 }

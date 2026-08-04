@@ -17,8 +17,11 @@ public sealed class BleGattTransport(MotoBudsDevice device, DiagnosticLogService
     private GattDeviceService? _service;
     private GattCharacteristic? _writeCharacteristic;
     private GattCharacteristic? _notifyCharacteristic;
+    private int _disconnectSignaled;
 
     public event EventHandler<PduReceivedEventArgs>? PduReceived;
+
+    public event EventHandler? Disconnected;
 
     public TransportKind Kind => TransportKind.BleGatt;
 
@@ -28,6 +31,7 @@ public sealed class BleGattTransport(MotoBudsDevice device, DiagnosticLogService
     {
         _bleDevice = await BluetoothLEDevice.FromIdAsync(device.DeviceId).AsTask(cancellationToken)
             .ConfigureAwait(false) ?? throw new InvalidOperationException("The paired BLE device is unavailable.");
+        _bleDevice.ConnectionStatusChanged += OnConnectionStatusChanged;
 
         var serviceResult = await _bleDevice
             .GetGattServicesForUuidAsync(DeviceDiscoveryService.ControlServiceUuid, BluetoothCacheMode.Uncached)
@@ -60,6 +64,7 @@ public sealed class BleGattTransport(MotoBudsDevice device, DiagnosticLogService
             throw new InvalidOperationException($"Enabling Moto Buds GATT notifications failed: {notifyStatus}.");
         }
 
+        _disconnectSignaled = 0;
         IsConnected = true;
         log.Write($"GATT connected to {device.Name} ({device.MaskedAddress}).");
     }
@@ -98,7 +103,11 @@ public sealed class BleGattTransport(MotoBudsDevice device, DiagnosticLogService
             }
         }
 
-        IsConnected = false;
+        SignalDisconnected();
+        if (_bleDevice is not null)
+        {
+            _bleDevice.ConnectionStatusChanged -= OnConnectionStatusChanged;
+        }
         _service?.Dispose();
         _bleDevice?.Dispose();
         _service = null;
@@ -132,5 +141,23 @@ public sealed class BleGattTransport(MotoBudsDevice device, DiagnosticLogService
 
         log.Write($"RX GATT opcode=0x{message.Opcode:X4} sequence={message.Sequence} result=0x{message.Result:X2}.");
         PduReceived?.Invoke(this, new(message));
+    }
+
+    private void OnConnectionStatusChanged(BluetoothLEDevice sender, object args)
+    {
+        if (sender.ConnectionStatus == BluetoothConnectionStatus.Disconnected)
+        {
+            log.Write($"GATT remote endpoint disconnected from {device.Name}.");
+            SignalDisconnected();
+        }
+    }
+
+    private void SignalDisconnected()
+    {
+        IsConnected = false;
+        if (Interlocked.Exchange(ref _disconnectSignaled, 1) == 0)
+        {
+            Disconnected?.Invoke(this, EventArgs.Empty);
+        }
     }
 }

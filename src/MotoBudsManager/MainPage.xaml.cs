@@ -23,6 +23,7 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         InitializeComponent();
+        AboutVersionText.Text = App.AppVersionText;
         AppNavigation.SelectedItem = NavHome;
         ViewModel.DeviceCards.CollectionChanged += (_, _) => RebuildDeviceNavigation();
         ViewModel.PropertyChanged += (_, args) =>
@@ -67,7 +68,12 @@ public sealed partial class MainPage : Page
                 return;
             }
 
-            ViewModel.SelectedDevice = device;
+            if (!await ViewModel.ConnectToDeviceAsync(device))
+            {
+                AppNavigation.SelectedItem = NavHome;
+                return;
+            }
+
             selectedTag = "Devices";
         }
 
@@ -86,7 +92,18 @@ public sealed partial class MainPage : Page
         {
             NavDevices.IsExpanded = true;
         }
+        else if (tag == "Devices")
+        {
+            await ViewModel.RefreshBatteryFromCacheAsync();
+        }
+    }
 
+    public Task OnWindowRestoredAsync() => ViewModel.RefreshBatteryFromCacheAsync();
+
+    private async void OnDisconnectClick(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.DisconnectCommand.ExecuteAsync(null);
+        AppNavigation.SelectedItem = NavHome;
     }
 
     private async void OnHomeDeviceCardClick(object sender, RoutedEventArgs e)
