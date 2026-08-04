@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="AppDisplayName" xml:space="preserve"><value>Moto Buds Manager</value></data>
+  <data name="AppDescription" xml:space="preserve"><value>管理已配对摩托罗拉耳机的非官方应用</value></data>
+  <data name="NavHome.Content" xml:space="preserve"><value>首页</value></data>
+  <data name="NavDevices.Content" xml:space="preserve"><value>设备列表</value></data>
+  <data name="NavLab.Content" xml:space="preserve"><value>实验室</value></data>
+  <data name="NavDiagnostics.Content" xml:space="preserve"><value>诊断</value></data>
+  <data name="NavSettings.Content" xml:space="preserve"><value>设置与关于</value></data>
+  <data name="HomeTitle.Text" xml:space="preserve"><value>我的耳机</value></data>
+  <data name="HomeSubtitle.Text" xml:space="preserve"><value>选择耳机以查看详情和管理功能。产品名称与图片由型号和颜色码匹配。</value></data>
+  <data name="LeftBatteryLabel.Text" xml:space="preserve"><value>左耳</value></data>
+  <data name="RightBatteryLabel.Text" xml:space="preserve"><value>右耳</value></data>
+  <data name="CaseBatteryLabel.Text" xml:space="preserve"><value>耳机盒</value></data>
+  <data name="StandardBatteryFormat" xml:space="preserve"><value>标准蓝牙电量 {0}%</value></data>
+  <data name="StandardBatteryUnavailable" xml:space="preserve"><value>标准蓝牙电量不可用</value></data>
+  <data name="DevicesTitle.Text" xml:space="preserve"><value>已配对的 Moto Buds</value></data>
+  <data name="DevicesSubtitle.Text" xml:space="preserve"><value>这里只列出已在 Windows 中完成配对的设备。</value></data>
+  <data name="RefreshButton.Content" xml:space="preserve"><value>刷新</value></data>
+  <data name="NoDevicesTitle.Text" xml:space="preserve"><value>未找到已配对耳机</value></data>
+  <data name="NoDevicesBody.Text" xml:space="preserve"><value>请先在 Windows 蓝牙设置中配对耳机，然后刷新此页面。</value></data>
+  <data name="OpenBluetoothButton.Content" xml:space="preserve"><value>打开蓝牙设置</value></data>
+  <data name="DeviceOverview.Header" xml:space="preserve"><value>设备概览</value></data>
+  <data name="DeviceOverview.Description" xml:space="preserve"><value>型号和传输方式由已配对的蓝牙服务推导。</value></data>
+  <data name="NameLabel.Text" xml:space="preserve"><value>名称</value></data>
+  <data name="ModelLabel.Text" xml:space="preserve"><value>型号</value></data>
+  <data name="TransportLabel.Text" xml:space="preserve"><value>传输</value></data>
+  <data name="BatteryLabel.Text" xml:space="preserve"><value>电量</value></data>
+  <data name="EvidenceLabel.Text" xml:space="preserve"><value>证据等级</value></data>
+  <data name="ConnectionCard.Header" xml:space="preserve"><value>连接</value></data>
+  <data name="ConnectionCard.Description" xml:space="preserve"><value>连接由用户手动发起，应用不会自动恢复连接。</value></data>
+  <data name="ConnectButton.Content" xml:space="preserve"><value>连接</value></data>
+  <data name="DisconnectButton.Content" xml:space="preserve"><value>断开</value></data>
+  <data name="StableAncCard.Header" xml:space="preserve"><value>主动降噪</value></data>
+  <data name="StableAncCard.Description" xml:space="preserve"><value>已在 XT2443-1 的 RFCOMM 链路实机验证；每次修改都会回读确认。</value></data>
+  <data name="AncOffItem.Text" xml:space="preserve"><value>关闭</value></data>
+  <data name="AncOnItem.Text" xml:space="preserve"><value>标准降噪</value></data>
+  <data name="LabTitle.Text" xml:space="preserve"><value>实验室</value></data>
+  <data name="LabWarning.Title" xml:space="preserve"><value>未经实机验证的私有指令</value></data>
+  <data name="LabWarning.Message" xml:space="preserve"><value>这些控件来自静态逆向。收到 ACK 不代表设备实际状态已经改变。</value></data>
+  <data name="LabAnc.Header" xml:space="preserve"><value>ANC（实验目标）</value></data>
+  <data name="LabAnc.Description" xml:space="preserve"><value>向静态白名单型号发送关闭或标准降噪。</value></data>
+  <data name="LabSpatial.Header" xml:space="preserve"><value>空间音频</value></data>
+  <data name="LabSpatial.Description" xml:space="preserve"><value>关闭、开启或开启并启用头部跟踪。</value></data>
+  <data name="LabHiRes.Header" xml:space="preserve"><value>Hi-Res 音频</value></data>
+  <data name="LabGaming.Header" xml:space="preserve"><value>游戏/低延迟模式</value></data>
+  <data name="LabAutoVolume.Header" xml:space="preserve"><value>自动音量</value></data>
+  <data name="LabBassBoost.Header" xml:space="preserve"><value>低音增强</value></data>
+  <data name="LabVolumeBoost.Header" xml:space="preserve"><value>音量增强</value></data>
+  <data name="LabInEar.Header" xml:space="preserve"><value>入耳检测</value></data>
+  <data name="LabFind.Header" xml:space="preserve"><value>查找耳机</value></data>
+  <data name="LabFind.Description" xml:space="preserve"><value>警告：耳机可能播放较大音量的提示音；30 秒后会自动停止。</value></data>
+  <data name="SendOff.Content" xml:space="preserve"><value>发送关闭</value></data>
+  <data name="SendOn.Content" xml:space="preserve"><value>发送开启</value></data>
+  <data name="SendHeadTracking.Content" xml:space="preserve"><value>开启并跟踪头部</value></data>
+  <data name="FindLeft.Content" xml:space="preserve"><value>左耳响铃</value></data>
+  <data name="FindRight.Content" xml:space="preserve"><value>右耳响铃</value></data>
+  <data name="FindBoth.Content" xml:space="preserve"><value>双耳响铃</value></data>
+  <data name="FindStop.Content" xml:space="preserve"><value>停止</value></data>
+  <data name="DiagnosticsTitle.Text" xml:space="preserve"><value>诊断</value></data>
+  <data name="ExportLogButton.Content" xml:space="preserve"><value>导出日志</value></data>
+  <data name="ClearLogButton.Content" xml:space="preserve"><value>清空</value></data>
+  <data name="SettingsTitle.Text" xml:space="preserve"><value>设置与关于</value></data>
+  <data name="ThemeCard.Header" xml:space="preserve"><value>应用主题</value></data>
+  <data name="ThemeCard.Description" xml:space="preserve"><value>跟随系统，或指定浅色/深色主题。</value></data>
+  <data name="ThemeSystem.Content" xml:space="preserve"><value>跟随系统</value></data>
+  <data name="ThemeLight.Content" xml:space="preserve"><value>浅色</value></data>
+  <data name="ThemeDark.Content" xml:space="preserve"><value>深色</value></data>
+  <data name="LanguageCard.Header" xml:space="preserve"><value>语言</value></data>
+  <data name="LanguageCard.Description" xml:space="preserve"><value>应用跟随 Windows 显示语言。</value></data>
+  <data name="LanguageValue.Text" xml:space="preserve"><value>已包含简体中文和英文资源。</value></data>
+  <data name="PrivacyCard.Header" xml:space="preserve"><value>隐私</value></data>
+  <data name="PrivacyValue.Text" xml:space="preserve"><value>无遥测、云服务或网络上传。诊断中的蓝牙地址会脱敏；只有主动导出时才写入日志文件。</value></data>
+  <data name="AboutCard.Header" xml:space="preserve"><value>关于</value></data>
+  <data name="UnofficialNotice.Text" xml:space="preserve"><value>本软件为非官方项目。Motorola 和 Moto Buds 商标归其各自所有者；本应用与 Motorola 无隶属或背书关系。</value></data>
+  <data name="StatusReady" xml:space="preserve"><value>就绪</value></data>
+  <data name="StatusReadyMessage" xml:space="preserve"><value>刷新以查找已配对耳机。</value></data>
+  <data name="StatusScanning" xml:space="preserve"><value>正在扫描已配对设备</value></data>
+  <data name="StatusScanningMessage" xml:space="preserve"><value>正在读取 RFCOMM 和 GATT 服务。</value></data>
+  <data name="StatusDevicesFound" xml:space="preserve"><value>已找到设备</value></data>
+  <data name="StatusDevicesFoundMessage" xml:space="preserve"><value>找到 {0} 个兼容的已配对设备。</value></data>
+  <data name="StatusNoDevices" xml:space="preserve"><value>未找到设备</value></data>
+  <data name="StatusNoDevicesMessage" xml:space="preserve"><value>请在 Windows 蓝牙设置中配对 Moto Buds 后刷新。</value></data>
+  <data name="StatusScanFailed" xml:space="preserve"><value>设备发现失败</value></data>
+  <data name="StatusConnecting" xml:space="preserve"><value>正在连接</value></data>
+  <data name="StatusConnected" xml:space="preserve"><value>已连接</value></data>
+  <data name="StatusConnectionFailed" xml:space="preserve"><value>连接失败</value></data>
+  <data name="StatusDisconnected" xml:space="preserve"><value>已断开</value></data>
+  <data name="StatusDisconnectedMessage" xml:space="preserve"><value>蓝牙会话已关闭。</value></data>
+  <data name="StatusAncVerified" xml:space="preserve"><value>ANC 状态已验证</value></data>
+  <data name="StatusAncFailed" xml:space="preserve"><value>ANC 修改失败</value></data>
+  <data name="AncOn" xml:space="preserve"><value>标准主动降噪已开启。</value></data>
+  <data name="AncOff" xml:space="preserve"><value>ANC 已关闭。</value></data>
+  <data name="StableAncUnavailable" xml:space="preserve"><value>稳定 ANC 控制仅用于已连接的 XT2443-1 RFCOMM 设备。</value></data>
+  <data name="NoDeviceSelected" xml:space="preserve"><value>未选择设备</value></data>
+  <data name="Unavailable" xml:space="preserve"><value>不可用</value></data>
+  <data name="EvidenceHardware" xml:space="preserve"><value>实机确认</value></data>
+  <data name="EvidenceStatic" xml:space="preserve"><value>静态确认</value></data>
+  <data name="EvidenceInferred" xml:space="preserve"><value>推断</value></data>
+  <data name="ExperimentalNoCommand" xml:space="preserve"><value>本次会话尚未发送实验指令。</value></data>
+  <data name="ExperimentalAck" xml:space="preserve"><value>已收到 {0}（值 {1}）的 ACK；设备实际状态未经验证。</value></data>
+  <data name="ExperimentalFailed" xml:space="preserve"><value>实验指令失败：{0}</value></data>
+  <data name="ExperimentalCommandFailed" xml:space="preserve"><value>实验指令失败</value></data>
+  <data name="ConnectFirst" xml:space="preserve"><value>请先连接兼容设备。</value></data>
+  <data name="UnknownError" xml:space="preserve"><value>未知错误</value></data>
+  <data name="LabConsentTitle" xml:space="preserve"><value>进入实验室？</value></data>
+  <data name="LabConsentBody" xml:space="preserve"><value>此页面的指令来自静态逆向，不同固件版本的行为可能不同。</value></data>
+  <data name="LabConsentAccept" xml:space="preserve"><value>进入实验室</value></data>
+  <data name="ExperimentalConfirmTitle" xml:space="preserve"><value>发送私有蓝牙指令？</value></data>
+  <data name="ExperimentalConfirmBody" xml:space="preserve"><value>要发送 {0}（值 {1}）吗？应用只能确认协议 ACK，无法确认最终设备状态。</value></data>
+  <data name="SendCommand" xml:space="preserve"><value>发送指令</value></data>
+  <data name="Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="TextFile" xml:space="preserve"><value>文本文件</value></data>
+  <data name="DeviceFeaturesTitle.Text" xml:space="preserve"><value>功能</value></data>
+  <data name="SettingsToolsTitle.Text" xml:space="preserve"><value>高级工具</value></data>
+  <data name="SettingsPreferencesTitle.Text" xml:space="preserve"><value>偏好设置</value></data>
+  <data name="SettingsLabCard.Header" xml:space="preserve"><value>实验室</value></data>
+  <data name="SettingsLabCard.Description" xml:space="preserve"><value>管理私有指令和尚未稳定的功能；进入前需要确认。</value></data>
+  <data name="OpenSettingsLabButton.Content" xml:space="preserve"><value>打开实验室</value></data>
+  <data name="SettingsDiagnosticsCard.Header" xml:space="preserve"><value>诊断</value></data>
+  <data name="SettingsDiagnosticsCard.Description" xml:space="preserve"><value>查看内存日志，并仅在需要时主动导出。</value></data>
+  <data name="OpenSettingsDiagnosticsButton.Content" xml:space="preserve"><value>打开诊断</value></data>
+  <data name="BackToSettingsText.Text" xml:space="preserve"><value>返回设置</value></data>
+  <data name="BatterySummaryFormat" xml:space="preserve"><value>左耳 {0} · 右耳 {1} · 耳机盒 {2}</value></data>
+  <data name="BatteryChargingFormat" xml:space="preserve"><value>{0}（充电中）</value></data>
+  <data name="ChargingLabel" xml:space="preserve"><value>正在充电</value></data>
+  <data name="AncControlCard.Header" xml:space="preserve"><value>主动降噪</value></data>
+  <data name="AncTransparencyItem.Text" xml:space="preserve"><value>通透</value></data>
+  <data name="AdaptiveCard.Header" xml:space="preserve"><value>自适应听感</value></data>
+  <data name="HiResCard.Header" xml:space="preserve"><value>Hi-Res 音频</value></data>
+  <data name="GamingCard.Header" xml:space="preserve"><value>游戏模式</value></data>
+  <data name="VolumeBoostCard.Header" xml:space="preserve"><value>音量增强</value></data>
+  <data name="InEarCard.Header" xml:space="preserve"><value>入耳检测</value></data>
+  <data name="DualConnectionCard.Header" xml:space="preserve"><value>双设备连接</value></data>
+  <data name="FindEarbudsCard.Header" xml:space="preserve"><value>查找耳机</value></data>
+  <data name="FindEarbudsCard.Description" xml:space="preserve"><value>响铃会在 30 秒后自动停止。</value></data>
+  <data name="FitTestCard.Header" xml:space="preserve"><value>佩戴测试</value></data>
+  <data name="FitTestCard.Description" xml:space="preserve"><value>启动或停止测试；当前不显示检测结果。</value></data>
+  <data name="RefreshStateCard.Header" xml:space="preserve"><value>刷新状态</value></data>
+  <data name="RefreshStateButton.Content" xml:space="preserve"><value>重新读取</value></data>
+  <data name="FitTestStart.Content" xml:space="preserve"><value>开始</value></data>
+  <data name="FitTestStop.Content" xml:space="preserve"><value>停止</value></data>
+  <data name="FeatureToggle.OnContent" xml:space="preserve"><value>开</value></data>
+  <data name="FeatureToggle.OffContent" xml:space="preserve"><value>关</value></data>
+  <data name="UntestedDeviceTitle" xml:space="preserve"><value>功能尚未经过硬件测试</value></data>
+  <data name="UntestedDeviceBody" xml:space="preserve"><value>{0}（{1}）没有经过本应用的硬件验证。继续后将连接设备并打开实验室。</value></data>
+  <data name="Xt2443ControlsUnavailable" xml:space="preserve"><value>请连接 XT2443-1 RFCOMM 设备。</value></data>
+  <data name="StatusFeatureUpdated" xml:space="preserve"><value>设置已更新</value></data>
+  <data name="StatusFeatureFailed" xml:space="preserve"><value>设置失败</value></data>
+  <data name="FeatureOn" xml:space="preserve"><value>已开启并回读确认。</value></data>
+  <data name="FeatureOff" xml:space="preserve"><value>已关闭并回读确认。</value></data>
+  <data name="FindEarbudsTitle" xml:space="preserve"><value>查找耳机</value></data>
+  <data name="FindLeftActive" xml:space="preserve"><value>左耳正在响铃。</value></data>
+  <data name="FindRightActive" xml:space="preserve"><value>右耳正在响铃。</value></data>
+  <data name="FindStopped" xml:space="preserve"><value>响铃已停止。</value></data>
+  <data name="FitTestTitle" xml:space="preserve"><value>佩戴测试</value></data>
+  <data name="FitTestStarted" xml:space="preserve"><value>测试已开始。</value></data>
+  <data name="FitTestStopped" xml:space="preserve"><value>测试已停止。</value></data>
+  <data name="StatusRefreshed" xml:space="preserve"><value>状态已刷新</value></data>
+  <data name="StatusRefreshedMessage" xml:space="preserve"><value>已重新读取耳机状态。</value></data>
+  <data name="AncTransparency" xml:space="preserve"><value>通透模式已开启。</value></data>
+  <data name="CurrentBatteryStatus" xml:space="preserve"><value>当前电量与充电状态</value></data>
+  <data name="BatteryComponentLeft" xml:space="preserve"><value>左耳</value></data>
+  <data name="BatteryComponentRight" xml:space="preserve"><value>右耳</value></data>
+  <data name="BatteryComponentCase" xml:space="preserve"><value>耳机盒</value></data>
+  <data name="BatteryComponentSeparator" xml:space="preserve"><value>、</value></data>
+  <data name="LowBatteryNotificationTitle" xml:space="preserve"><value>耳机电量低</value></data>
+  <data name="LowBatteryNotificationBody" xml:space="preserve"><value>{0} 的{1}电量低于 20%（当前 {2}%）。</value></data>
+</root>

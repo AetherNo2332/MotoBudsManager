@@ -1,0 +1,624 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="MotoBudsManager.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:MotoBudsManager"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModels="using:MotoBudsManager.ViewModels"
+    Loaded="OnLoaded"
+    mc:Ignorable="d">
+
+    <NavigationView
+        x:Name="AppNavigation"
+        AutomationProperties.AutomationId="AppNavigation"
+        IsBackButtonVisible="Collapsed"
+        IsSettingsVisible="False"
+        PaneDisplayMode="Auto"
+        SelectionChanged="OnNavigationSelectionChanged">
+        <NavigationView.MenuItems>
+            <NavigationViewItem x:Name="NavHome" x:Uid="NavHome" AutomationProperties.AutomationId="NavHome" Tag="Home">
+                <NavigationViewItem.Icon><SymbolIcon Symbol="Home" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem x:Name="NavDevices" x:Uid="NavDevices" AutomationProperties.AutomationId="NavDevices" IsExpanded="True" Tag="Devices">
+                <NavigationViewItem.Icon><FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" Glyph="&#xE7F6;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.MenuItems>
+        <NavigationView.FooterMenuItems>
+            <NavigationViewItem x:Name="NavSettings" x:Uid="NavSettings" AutomationProperties.AutomationId="NavSettings" Tag="Settings">
+                <NavigationViewItem.Icon><FontIcon Glyph="&#xE713;" /></NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.FooterMenuItems>
+
+        <Grid Padding="24,16,24,24" RowSpacing="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <InfoBar
+                x:Name="StatusBar"
+                AutomationProperties.AutomationId="StatusBar"
+                IsOpen="{x:Bind ViewModel.StatusIsOpen, Mode=TwoWay}"
+                Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                Severity="{x:Bind local:MainPage.SeverityFromError(ViewModel.StatusIsError), Mode=OneWay}"
+                Title="{x:Bind ViewModel.StatusTitle, Mode=OneWay}" />
+
+            <Grid Grid.Row="1">
+                <Grid x:Name="HomePage" AutomationProperties.AutomationId="HomePage" RowSpacing="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock x:Uid="HomeTitle" Style="{StaticResource TitleTextBlockStyle}" />
+                            <TextBlock x:Uid="HomeSubtitle" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Button
+                            x:Uid="RefreshButton"
+                            Grid.Column="1"
+                            AutomationProperties.AutomationId="HomeRefreshButton"
+                            Command="{x:Bind ViewModel.RefreshCommand}"
+                            Style="{StaticResource AccentButtonStyle}" />
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <ScrollViewer
+                            AutomationProperties.AutomationId="HomeDeviceCards"
+                            HorizontalScrollBarVisibility="Disabled"
+                            VerticalScrollBarVisibility="Auto"
+                            Visibility="{x:Bind local:MainPage.BoolToVisibility(ViewModel.HasDevices), Mode=OneWay}">
+                            <ItemsRepeater ItemsSource="{x:Bind ViewModel.DeviceCards}">
+                                <ItemsRepeater.Layout>
+                                    <UniformGridLayout
+                                        ItemsJustification="Start"
+                                        ItemsStretch="None"
+                                        MinColumnSpacing="16"
+                                        MinItemHeight="420"
+                                        MinItemWidth="280"
+                                        MinRowSpacing="16" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="viewModels:DeviceCardViewModel">
+                                        <Button
+                                            Width="280"
+                                            MinHeight="408"
+                                            Margin="0,0,0,4"
+                                            Padding="20"
+                                            HorizontalContentAlignment="Stretch"
+                                            VerticalContentAlignment="Stretch"
+                                            AutomationProperties.AutomationId="{x:Bind AutomationId}"
+                                            AutomationProperties.Name="{x:Bind ProductName}"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            Click="OnHomeDeviceCardClick"
+                                            CornerRadius="12"
+                                            Tag="{x:Bind Device}">
+                                            <Grid RowSpacing="10">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="170" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="*" />
+                                                </Grid.RowDefinitions>
+
+                                                <Border Background="{ThemeResource ControlFillColorSecondaryBrush}" CornerRadius="10">
+                                                    <Image
+                                                        Margin="14"
+                                                        AutomationProperties.Name="{x:Bind ProductName}"
+                                                        Source="{x:Bind ImageSource}"
+                                                        Stretch="Uniform" />
+                                                </Border>
+                                                <TextBlock
+                                                    Grid.Row="1"
+                                                    Text="{x:Bind ProductName}"
+                                                    Style="{StaticResource SubtitleTextBlockStyle}"
+                                                    TextTrimming="CharacterEllipsis" />
+                                                <StackPanel Grid.Row="2" Spacing="2">
+                                                    <TextBlock Text="{x:Bind ModelAndColor}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                    <TextBlock Text="{x:Bind PairedName}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                                <TextBlock
+                                                    Grid.Row="3"
+                                                    Text="{x:Bind BatteryStatusText, Mode=OneWay}"
+                                                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                                <Grid Grid.Row="4" Margin="0,2,0,0" ColumnSpacing="12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel HorizontalAlignment="Center" Spacing="2">
+                                                        <TextBlock x:Uid="LeftBatteryLabel" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="3">
+                                                            <TextBlock AutomationProperties.AutomationId="{x:Bind LeftBatteryAutomationId}" Text="{x:Bind LeftBatteryText, Mode=OneWay}" />
+                                                            <FontIcon
+                                                                AutomationProperties.AutomationId="{x:Bind LeftChargingAutomationId}"
+                                                                AutomationProperties.Name="{x:Bind ChargingLabel}"
+                                                                FontSize="12"
+                                                                Glyph="&#xE945;"
+                                                                ToolTipService.ToolTip="{x:Bind ChargingLabel}"
+                                                                Visibility="{x:Bind local:MainPage.BoolToVisibility(LeftIsCharging), Mode=OneWay}" />
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" HorizontalAlignment="Center" Spacing="2">
+                                                        <TextBlock x:Uid="RightBatteryLabel" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="3">
+                                                            <TextBlock AutomationProperties.AutomationId="{x:Bind RightBatteryAutomationId}" Text="{x:Bind RightBatteryText, Mode=OneWay}" />
+                                                            <FontIcon
+                                                                AutomationProperties.AutomationId="{x:Bind RightChargingAutomationId}"
+                                                                AutomationProperties.Name="{x:Bind ChargingLabel}"
+                                                                FontSize="12"
+                                                                Glyph="&#xE945;"
+                                                                ToolTipService.ToolTip="{x:Bind ChargingLabel}"
+                                                                Visibility="{x:Bind local:MainPage.BoolToVisibility(RightIsCharging), Mode=OneWay}" />
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2" HorizontalAlignment="Center" Spacing="2">
+                                                        <TextBlock x:Uid="CaseBatteryLabel" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="3">
+                                                            <TextBlock AutomationProperties.AutomationId="{x:Bind CaseBatteryAutomationId}" Text="{x:Bind CaseBatteryText, Mode=OneWay}" />
+                                                            <FontIcon
+                                                                AutomationProperties.AutomationId="{x:Bind CaseChargingAutomationId}"
+                                                                AutomationProperties.Name="{x:Bind ChargingLabel}"
+                                                                FontSize="12"
+                                                                Glyph="&#xE945;"
+                                                                ToolTipService.ToolTip="{x:Bind ChargingLabel}"
+                                                                Visibility="{x:Bind local:MainPage.BoolToVisibility(CaseIsCharging), Mode=OneWay}" />
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Grid>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </ScrollViewer>
+
+                        <StackPanel
+                            MaxWidth="420"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="12"
+                            Visibility="{x:Bind local:MainPage.InvertBoolToVisibility(ViewModel.HasDevices), Mode=OneWay}">
+                            <FontIcon FontSize="48" Glyph="&#xE702;" />
+                            <TextBlock x:Uid="NoDevicesTitle" Style="{StaticResource SubtitleTextBlockStyle}" TextAlignment="Center" />
+                            <TextBlock x:Uid="NoDevicesBody" TextAlignment="Center" TextWrapping="Wrap" />
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
+                                <Button x:Uid="OpenBluetoothButton" Command="{x:Bind ViewModel.OpenBluetoothSettingsCommand}" />
+                                <Button x:Uid="RefreshButton" Command="{x:Bind ViewModel.RefreshCommand}" Style="{StaticResource AccentButtonStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <ProgressRing
+                            Width="36"
+                            Height="36"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                            Visibility="{x:Bind local:MainPage.BoolToVisibility(ViewModel.IsBusy), Mode=OneWay}" />
+                    </Grid>
+                </Grid>
+
+                <Grid x:Name="DevicesPage" AutomationProperties.AutomationId="DevicesPage" Visibility="Collapsed">
+                    <ScrollViewer AutomationProperties.AutomationId="DeviceControlScroll" VerticalScrollBarVisibility="Auto">
+                        <StackPanel MaxWidth="1000" HorizontalAlignment="Stretch" Spacing="20">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="4">
+                                    <TextBlock
+                                        AutomationProperties.AutomationId="DeviceControlTitle"
+                                        Text="{x:Bind ViewModel.ProductName, Mode=OneWay}"
+                                        Style="{StaticResource TitleTextBlockStyle}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <TextBlock Text="{x:Bind ViewModel.ProductModelAndColor, Mode=OneWay}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        <TextBlock Text="{x:Bind ViewModel.ConnectionStatusText, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                        <StackPanel
+                                            AutomationProperties.AutomationId="BatterySummaryText"
+                                            AutomationProperties.Name="{x:Bind ViewModel.BatterySummaryText, Mode=OneWay}"
+                                            Orientation="Horizontal"
+                                            Spacing="4">
+                                            <TextBlock x:Uid="LeftBatteryLabel" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.LeftBatteryText, Mode=OneWay}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <FontIcon
+                                                AutomationProperties.AutomationId="ControlChargingLeft"
+                                                AutomationProperties.Name="{x:Bind ViewModel.ChargingLabel}"
+                                                FontSize="12"
+                                                Glyph="&#xE945;"
+                                                ToolTipService.ToolTip="{x:Bind ViewModel.ChargingLabel}"
+                                                Visibility="{x:Bind local:MainPage.BoolToVisibility(ViewModel.LeftBatteryCharging), Mode=OneWay}" />
+                                            <TextBlock Text="·" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock x:Uid="RightBatteryLabel" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.RightBatteryText, Mode=OneWay}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <FontIcon
+                                                AutomationProperties.AutomationId="ControlChargingRight"
+                                                AutomationProperties.Name="{x:Bind ViewModel.ChargingLabel}"
+                                                FontSize="12"
+                                                Glyph="&#xE945;"
+                                                ToolTipService.ToolTip="{x:Bind ViewModel.ChargingLabel}"
+                                                Visibility="{x:Bind local:MainPage.BoolToVisibility(ViewModel.RightBatteryCharging), Mode=OneWay}" />
+                                            <TextBlock Text="·" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock x:Uid="CaseBatteryLabel" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock Text="{x:Bind ViewModel.CaseBatteryText, Mode=OneWay}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <FontIcon
+                                                AutomationProperties.AutomationId="ControlChargingCase"
+                                                AutomationProperties.Name="{x:Bind ViewModel.ChargingLabel}"
+                                                FontSize="12"
+                                                Glyph="&#xE945;"
+                                                ToolTipService.ToolTip="{x:Bind ViewModel.ChargingLabel}"
+                                                Visibility="{x:Bind local:MainPage.BoolToVisibility(ViewModel.CaseBatteryCharging), Mode=OneWay}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                                <Button
+                                    x:Uid="DisconnectButton"
+                                    Grid.Column="1"
+                                    AutomationProperties.AutomationId="HeaderDisconnectButton"
+                                    Command="{x:Bind ViewModel.DisconnectCommand}"
+                                    IsEnabled="{x:Bind ViewModel.CanDisconnect, Mode=OneWay}" />
+                            </Grid>
+
+                            <Border
+                                MinHeight="280"
+                                Padding="24"
+                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                CornerRadius="16">
+                                <Grid>
+                                    <Image
+                                        MaxWidth="360"
+                                        MaxHeight="250"
+                                        HorizontalAlignment="Center"
+                                        AutomationProperties.AutomationId="DeviceHeroImage"
+                                        AutomationProperties.Name="{x:Bind ViewModel.ProductName, Mode=OneWay}"
+                                        Source="{x:Bind ViewModel.ProductImageSource, Mode=OneWay}"
+                                        Stretch="Uniform" />
+                                    <ProgressRing
+                                        Width="40"
+                                        Height="40"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}"
+                                        Visibility="{x:Bind local:MainPage.BoolToVisibility(ViewModel.IsBusy), Mode=OneWay}" />
+                                </Grid>
+                            </Border>
+
+                            <TextBlock x:Uid="DeviceFeaturesTitle" Style="{StaticResource SubtitleTextBlockStyle}" />
+                            <ContentControl
+                                HorizontalContentAlignment="Stretch"
+                                IsEnabled="{x:Bind ViewModel.IsXt2443ControlsAvailable, Mode=OneWay}">
+                                <Grid
+                                    x:Name="DeviceFeatureGrid"
+                                    ColumnSpacing="12"
+                                    RowSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition x:Name="FeatureLeftColumn" Width="*" />
+                                    <ColumnDefinition x:Name="FeatureRightColumn" Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <controls:SettingsCard
+                                    x:Name="StableAncCard"
+                                    x:Uid="AncControlCard"
+                                    AutomationProperties.AutomationId="AncControlCard"
+                                    Height="120">
+                                    <SelectorBar
+                                        x:Name="AncSelector"
+                                        AutomationProperties.AutomationId="AncSelector"
+                                        SelectionChanged="OnAncSelectionChanged">
+                                        <SelectorBarItem x:Name="AncOffItem" x:Uid="AncOffItem" AutomationProperties.AutomationId="AncOffItem" />
+                                        <SelectorBarItem x:Name="AncOnItem" x:Uid="AncOnItem" AutomationProperties.AutomationId="AncOnItem" />
+                                        <SelectorBarItem x:Name="AncTransparencyItem" x:Uid="AncTransparencyItem" AutomationProperties.AutomationId="AncTransparencyItem" />
+                                    </SelectorBar>
+                                </controls:SettingsCard>
+
+                                <controls:SettingsCard x:Name="AdaptiveCard" x:Uid="AdaptiveCard" Grid.Column="1" AutomationProperties.AutomationId="AdaptiveCard" Height="120">
+                                    <ToggleSwitch
+                                        x:Uid="FeatureToggle"
+                                        AutomationProperties.AutomationId="AdaptiveHearingToggle"
+                                        IsOn="{x:Bind ViewModel.AdaptiveHearingEnabled, Mode=OneWay}"
+                                        Tag="AdaptiveHearing"
+                                        Toggled="OnXt2443ToggleToggled" />
+                                </controls:SettingsCard>
+
+                                <controls:SettingsCard x:Name="HiResCard" x:Uid="HiResCard" Grid.Row="1" AutomationProperties.AutomationId="HiResCard" Height="120">
+                                    <ToggleSwitch
+                                        x:Uid="FeatureToggle"
+                                        AutomationProperties.AutomationId="HiResToggle"
+                                        IsOn="{x:Bind ViewModel.HiResEnabled, Mode=OneWay}"
+                                        Tag="HiRes"
+                                        Toggled="OnXt2443ToggleToggled" />
+                                </controls:SettingsCard>
+
+                                <controls:SettingsCard x:Name="GamingCard" x:Uid="GamingCard" Grid.Row="1" Grid.Column="1" AutomationProperties.AutomationId="GamingCard" Height="120">
+                                    <ToggleSwitch
+                                        x:Uid="FeatureToggle"
+                                        AutomationProperties.AutomationId="GamingModeToggle"
+                                        IsOn="{x:Bind ViewModel.GamingModeEnabled, Mode=OneWay}"
+                                        Tag="GamingMode"
+                                        Toggled="OnXt2443ToggleToggled" />
+                                </controls:SettingsCard>
+
+                                <controls:SettingsCard x:Name="VolumeBoostCard" x:Uid="VolumeBoostCard" Grid.Row="2" AutomationProperties.AutomationId="VolumeBoostCard" Height="120">
+                                    <ToggleSwitch
+                                        x:Uid="FeatureToggle"
+                                        AutomationProperties.AutomationId="VolumeBoostToggle"
+                                        IsOn="{x:Bind ViewModel.VolumeBoostEnabled, Mode=OneWay}"
+                                        Tag="VolumeBoost"
+                                        Toggled="OnXt2443ToggleToggled" />
+                                </controls:SettingsCard>
+
+                                <controls:SettingsCard x:Name="InEarCard" x:Uid="InEarCard" Grid.Row="2" Grid.Column="1" AutomationProperties.AutomationId="InEarCard" Height="120">
+                                    <ToggleSwitch
+                                        x:Uid="FeatureToggle"
+                                        AutomationProperties.AutomationId="InEarDetectionToggle"
+                                        IsOn="{x:Bind ViewModel.InEarDetectionEnabled, Mode=OneWay}"
+                                        Tag="InEarDetection"
+                                        Toggled="OnXt2443ToggleToggled" />
+                                </controls:SettingsCard>
+
+                                <controls:SettingsCard x:Name="DualConnectionCard" x:Uid="DualConnectionCard" Grid.Row="3" AutomationProperties.AutomationId="DualConnectionCard" Height="120">
+                                    <ToggleSwitch
+                                        x:Uid="FeatureToggle"
+                                        AutomationProperties.AutomationId="DualConnectionToggle"
+                                        IsEnabled="{x:Bind ViewModel.DualConnectionSupported, Mode=OneWay}"
+                                        IsOn="{x:Bind ViewModel.DualConnectionEnabled, Mode=OneWay}"
+                                        Toggled="OnDualConnectionToggled" />
+                                </controls:SettingsCard>
+
+                                <controls:SettingsCard x:Name="FindEarbudsCard" x:Uid="FindEarbudsCard" Grid.Row="3" Grid.Column="1" AutomationProperties.AutomationId="FindEarbudsCard" Height="120">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Button x:Uid="FindLeft" AutomationProperties.AutomationId="XtFindLeft" Tag="Left" Click="OnXt2443FindClick" />
+                                        <Button x:Uid="FindRight" AutomationProperties.AutomationId="XtFindRight" Tag="Right" Click="OnXt2443FindClick" />
+                                        <Button x:Uid="FindStop" AutomationProperties.AutomationId="XtFindStop" Tag="Stop" Click="OnXt2443FindClick" />
+                                    </StackPanel>
+                                </controls:SettingsCard>
+
+                                <controls:SettingsCard x:Name="FitTestCard" x:Uid="FitTestCard" Grid.Row="4" AutomationProperties.AutomationId="FitTestCard" Height="120">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Button x:Uid="FitTestStart" AutomationProperties.AutomationId="FitTestStart" Tag="True" Click="OnFitTestClick" />
+                                        <Button x:Uid="FitTestStop" AutomationProperties.AutomationId="FitTestStop" Tag="False" Click="OnFitTestClick" />
+                                    </StackPanel>
+                                </controls:SettingsCard>
+
+                                <controls:SettingsCard x:Name="RefreshStateCard" x:Uid="RefreshStateCard" Grid.Row="4" Grid.Column="1" AutomationProperties.AutomationId="RefreshStateCard" Height="120">
+                                    <Button
+                                        x:Uid="RefreshStateButton"
+                                        AutomationProperties.AutomationId="RefreshStateButton"
+                                        Command="{x:Bind ViewModel.RefreshXt2443StateCommand}" />
+                                </controls:SettingsCard>
+
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup>
+                                        <VisualState x:Name="NarrowFeatures">
+                                            <VisualState.StateTriggers><AdaptiveTrigger MinWindowWidth="0" /></VisualState.StateTriggers>
+                                            <VisualState.Setters>
+                                                <Setter Target="FeatureRightColumn.Width" Value="0" />
+                                                <Setter Target="AdaptiveCard.(Grid.Column)" Value="0" />
+                                                <Setter Target="AdaptiveCard.(Grid.Row)" Value="1" />
+                                                <Setter Target="HiResCard.(Grid.Row)" Value="2" />
+                                                <Setter Target="GamingCard.(Grid.Column)" Value="0" />
+                                                <Setter Target="GamingCard.(Grid.Row)" Value="3" />
+                                                <Setter Target="VolumeBoostCard.(Grid.Row)" Value="4" />
+                                                <Setter Target="InEarCard.(Grid.Column)" Value="0" />
+                                                <Setter Target="InEarCard.(Grid.Row)" Value="5" />
+                                                <Setter Target="DualConnectionCard.(Grid.Row)" Value="6" />
+                                                <Setter Target="FindEarbudsCard.(Grid.Column)" Value="0" />
+                                                <Setter Target="FindEarbudsCard.(Grid.Row)" Value="7" />
+                                                <Setter Target="FitTestCard.(Grid.Row)" Value="8" />
+                                                <Setter Target="RefreshStateCard.(Grid.Column)" Value="0" />
+                                                <Setter Target="RefreshStateCard.(Grid.Row)" Value="9" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="WideFeatures">
+                                            <VisualState.StateTriggers><AdaptiveTrigger MinWindowWidth="800" /></VisualState.StateTriggers>
+                                            <VisualState.Setters>
+                                                <Setter Target="FeatureRightColumn.Width" Value="*" />
+                                                <Setter Target="AdaptiveCard.(Grid.Column)" Value="1" />
+                                                <Setter Target="AdaptiveCard.(Grid.Row)" Value="0" />
+                                                <Setter Target="HiResCard.(Grid.Row)" Value="1" />
+                                                <Setter Target="GamingCard.(Grid.Column)" Value="1" />
+                                                <Setter Target="GamingCard.(Grid.Row)" Value="1" />
+                                                <Setter Target="VolumeBoostCard.(Grid.Row)" Value="2" />
+                                                <Setter Target="InEarCard.(Grid.Column)" Value="1" />
+                                                <Setter Target="InEarCard.(Grid.Row)" Value="2" />
+                                                <Setter Target="DualConnectionCard.(Grid.Row)" Value="3" />
+                                                <Setter Target="FindEarbudsCard.(Grid.Column)" Value="1" />
+                                                <Setter Target="FindEarbudsCard.(Grid.Row)" Value="3" />
+                                                <Setter Target="FitTestCard.(Grid.Row)" Value="4" />
+                                                <Setter Target="RefreshStateCard.(Grid.Column)" Value="1" />
+                                                <Setter Target="RefreshStateCard.(Grid.Row)" Value="4" />
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                                </Grid>
+                            </ContentControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+
+                <Grid x:Name="LabPage" AutomationProperties.AutomationId="LabPage" Visibility="Collapsed">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel MaxWidth="900" HorizontalAlignment="Stretch" Spacing="12">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Button
+                                    AutomationProperties.AutomationId="LabBackToSettingsButton"
+                                    Click="OnBackToSettingsClick">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <SymbolIcon Symbol="Back" />
+                                        <TextBlock x:Uid="BackToSettingsText" />
+                                    </StackPanel>
+                                </Button>
+                                <TextBlock x:Uid="LabTitle" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource TitleTextBlockStyle}" />
+                            </Grid>
+                            <InfoBar x:Uid="LabWarning" IsOpen="True" IsClosable="False" Severity="Warning" />
+                            <TextBlock
+                                AutomationProperties.AutomationId="ExperimentalStatus"
+                                Text="{x:Bind ViewModel.ExperimentalStatus, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+
+                            <controls:SettingsCard x:Uid="LabAnc" IsEnabled="{x:Bind ViewModel.CanUseAnc, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Uid="SendOff" AutomationProperties.AutomationId="LabAncOff" Tag="Anc:0" Click="OnExperimentalButtonClick" />
+                                    <Button x:Uid="SendOn" AutomationProperties.AutomationId="LabAncOn" Tag="Anc:1" Click="OnExperimentalButtonClick" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard x:Uid="LabSpatial" IsEnabled="{x:Bind ViewModel.CanUseSpatialAudio, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Uid="SendOff" AutomationProperties.AutomationId="LabSpatialOff" Tag="SpatialAudio:0" Click="OnExperimentalButtonClick" />
+                                    <Button x:Uid="SendOn" AutomationProperties.AutomationId="LabSpatialOn" Tag="SpatialAudio:1" Click="OnExperimentalButtonClick" />
+                                    <Button x:Uid="SendHeadTracking" AutomationProperties.AutomationId="LabSpatialTracking" Tag="SpatialAudio:2" Click="OnExperimentalButtonClick" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard x:Uid="LabHiRes" IsEnabled="{x:Bind ViewModel.CanUseHiRes, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Uid="SendOff" AutomationProperties.AutomationId="LabHiResOff" Tag="HiRes:0" Click="OnExperimentalButtonClick" />
+                                    <Button x:Uid="SendOn" AutomationProperties.AutomationId="LabHiResOn" Tag="HiRes:1" Click="OnExperimentalButtonClick" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard x:Uid="LabGaming" IsEnabled="{x:Bind ViewModel.CanUseGaming, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Uid="SendOff" AutomationProperties.AutomationId="LabGamingOff" Tag="GamingMode:0" Click="OnExperimentalButtonClick" />
+                                    <Button x:Uid="SendOn" AutomationProperties.AutomationId="LabGamingOn" Tag="GamingMode:1" Click="OnExperimentalButtonClick" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard x:Uid="LabAutoVolume" IsEnabled="{x:Bind ViewModel.CanUseAutomaticVolume, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Uid="SendOff" AutomationProperties.AutomationId="LabAutoVolumeOff" Tag="AutomaticVolume:0" Click="OnExperimentalButtonClick" />
+                                    <Button x:Uid="SendOn" AutomationProperties.AutomationId="LabAutoVolumeOn" Tag="AutomaticVolume:1" Click="OnExperimentalButtonClick" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard x:Uid="LabBassBoost" IsEnabled="{x:Bind ViewModel.CanUseBassBoost, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Uid="SendOff" AutomationProperties.AutomationId="LabBassBoostOff" Tag="BassBoost:0" Click="OnExperimentalButtonClick" />
+                                    <Button x:Uid="SendOn" AutomationProperties.AutomationId="LabBassBoostOn" Tag="BassBoost:1" Click="OnExperimentalButtonClick" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard x:Uid="LabVolumeBoost" IsEnabled="{x:Bind ViewModel.CanUseVolumeBoost, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Uid="SendOff" AutomationProperties.AutomationId="LabVolumeBoostOff" Tag="VolumeBoost:0" Click="OnExperimentalButtonClick" />
+                                    <Button x:Uid="SendOn" AutomationProperties.AutomationId="LabVolumeBoostOn" Tag="VolumeBoost:1" Click="OnExperimentalButtonClick" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard x:Uid="LabInEar" IsEnabled="{x:Bind ViewModel.CanUseInEarDetection, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Uid="SendOff" AutomationProperties.AutomationId="LabInEarOff" Tag="InEarDetection:0" Click="OnExperimentalButtonClick" />
+                                    <Button x:Uid="SendOn" AutomationProperties.AutomationId="LabInEarOn" Tag="InEarDetection:1" Click="OnExperimentalButtonClick" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard x:Uid="LabFind" IsEnabled="{x:Bind ViewModel.CanUseFindEarbuds, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Uid="FindLeft" AutomationProperties.AutomationId="LabFindLeft" Tag="FindEarbuds:1" Click="OnExperimentalButtonClick" />
+                                    <Button x:Uid="FindRight" AutomationProperties.AutomationId="LabFindRight" Tag="FindEarbuds:2" Click="OnExperimentalButtonClick" />
+                                    <Button x:Uid="FindBoth" AutomationProperties.AutomationId="LabFindBoth" Tag="FindEarbuds:3" Click="OnExperimentalButtonClick" />
+                                    <Button x:Uid="FindStop" AutomationProperties.AutomationId="LabFindStop" Tag="FindEarbuds:0" Click="OnExperimentalButtonClick" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+
+                <Grid x:Name="DiagnosticsPage" AutomationProperties.AutomationId="DiagnosticsPage" Visibility="Collapsed" RowSpacing="12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Button
+                            AutomationProperties.AutomationId="DiagnosticsBackToSettingsButton"
+                            Click="OnBackToSettingsClick">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <SymbolIcon Symbol="Back" />
+                                <TextBlock x:Uid="BackToSettingsText" />
+                            </StackPanel>
+                        </Button>
+                        <TextBlock x:Uid="DiagnosticsTitle" Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource TitleTextBlockStyle}" />
+                        <Button x:Uid="ExportLogButton" Grid.Column="2" AutomationProperties.AutomationId="ExportLogButton" Click="OnExportLogClick" />
+                        <Button x:Uid="ClearLogButton" Grid.Column="3" AutomationProperties.AutomationId="ClearLogButton" Click="OnClearLogClick" />
+                    </Grid>
+                    <ListView
+                        Grid.Row="1"
+                        AutomationProperties.AutomationId="DiagnosticLogList"
+                        FontFamily="Consolas"
+                        ItemsSource="{x:Bind ViewModel.LogEntries}"
+                        SelectionMode="None" />
+                </Grid>
+
+                <Grid x:Name="SettingsPage" AutomationProperties.AutomationId="SettingsPage" Visibility="Collapsed">
+                    <ScrollViewer>
+                        <StackPanel MaxWidth="800" HorizontalAlignment="Stretch" Spacing="12">
+                            <TextBlock x:Uid="SettingsTitle" Style="{StaticResource TitleTextBlockStyle}" />
+                            <TextBlock x:Uid="SettingsToolsTitle" Style="{StaticResource SubtitleTextBlockStyle}" />
+                            <controls:SettingsCard x:Uid="SettingsLabCard">
+                                <Button
+                                    x:Uid="OpenSettingsLabButton"
+                                    AutomationProperties.AutomationId="OpenSettingsLabButton"
+                                    Click="OnOpenSettingsLabClick" />
+                            </controls:SettingsCard>
+                            <controls:SettingsCard x:Uid="SettingsDiagnosticsCard">
+                                <Button
+                                    x:Uid="OpenSettingsDiagnosticsButton"
+                                    AutomationProperties.AutomationId="OpenSettingsDiagnosticsButton"
+                                    Click="OnOpenSettingsDiagnosticsClick" />
+                            </controls:SettingsCard>
+                            <TextBlock x:Uid="SettingsPreferencesTitle" Style="{StaticResource SubtitleTextBlockStyle}" />
+                            <controls:SettingsCard x:Uid="ThemeCard">
+                                <ComboBox x:Name="ThemeSelector" AutomationProperties.AutomationId="ThemeSelector" SelectionChanged="OnThemeSelectionChanged">
+                                    <ComboBoxItem x:Uid="ThemeSystem" AutomationProperties.AutomationId="ThemeSystem" Tag="Default" />
+                                    <ComboBoxItem x:Uid="ThemeLight" AutomationProperties.AutomationId="ThemeLight" Tag="Light" />
+                                    <ComboBoxItem x:Uid="ThemeDark" AutomationProperties.AutomationId="ThemeDark" Tag="Dark" />
+                                </ComboBox>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard x:Uid="LanguageCard">
+                                <TextBlock x:Uid="LanguageValue" />
+                            </controls:SettingsCard>
+                            <controls:SettingsCard x:Uid="PrivacyCard" ContentAlignment="Left">
+                                <TextBlock x:Uid="PrivacyValue" TextWrapping="Wrap" />
+                            </controls:SettingsCard>
+                            <controls:SettingsCard x:Uid="AboutCard" ContentAlignment="Left">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Moto Buds Manager 1.3.1" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                    <TextBlock x:Uid="UnofficialNotice" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </controls:SettingsCard>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+        </Grid>
+    </NavigationView>
+</Page>

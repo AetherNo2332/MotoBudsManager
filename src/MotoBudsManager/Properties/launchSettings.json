@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MotoBudsManager (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "MotoBudsManager (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
