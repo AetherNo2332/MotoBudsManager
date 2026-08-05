@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AetherNo2332/MotoBudsManager/blob/main/docs/schemas/device-reverse-report.schema.json",
+  "title": "Moto Buds device reverse-engineering report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "metadata",
+    "device",
+    "sources",
+    "baseline",
+    "feature_results",
+    "opcode_observations",
+    "capability_decisions",
+    "recommended_changes",
+    "open_questions",
+    "privacy_review"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tested_at_utc", "repository_commit", "app_version", "windows_version", "ai_tool"],
+      "properties": {
+        "tested_at_utc": { "type": "string", "format": "date-time" },
+        "contributor": { "type": ["string", "null"] },
+        "repository_commit": { "type": "string", "pattern": "^[0-9a-fA-F]{7,40}$" },
+        "app_version": { "type": "string", "minLength": 1 },
+        "windows_version": { "type": "string", "minLength": 1 },
+        "ai_tool": { "type": "string", "minLength": 1 }
+      }
+    },
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["display_name", "model_id", "color_id", "firmware_version", "profile", "transport", "capability_hex", "redacted_address", "identity_source"],
+      "properties": {
+        "display_name": { "type": "string" },
+        "model_id": { "type": "string", "pattern": "^(XT[0-9]{4}-[0-9]+|unknown)$" },
+        "color_id": { "type": ["integer", "null"], "minimum": 0, "maximum": 255 },
+        "firmware_version": { "type": "string" },
+        "profile": { "type": ["integer", "string", "null"] },
+        "transport": { "enum": ["rfcomm_spp", "ble_gatt", "unknown"] },
+        "capability_hex": { "$ref": "#/$defs/hexOrUnknown" },
+        "redacted_address": { "type": "string", "pattern": "^(XX:XX:XX(:[0-9A-F]{2}){3}|redacted)$" },
+        "identity_source": { "type": "string", "minLength": 1 }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "type", "name", "sha256", "notes"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "type": { "enum": ["apk", "source", "capture", "device", "manual", "other"] },
+          "name": { "type": "string", "minLength": 1 },
+          "sha256": { "type": ["string", "null"], "pattern": "^[0-9a-fA-F]{64}$" },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "baseline": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/stateObservation" }
+    },
+    "feature_results": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/featureResult" }
+    },
+    "opcode_observations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/opcodeObservation" }
+    },
+    "capability_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["feature_id", "support", "evidence", "default_whitelist", "notes"],
+        "properties": {
+          "feature_id": { "type": "string", "minLength": 1 },
+          "support": { "enum": ["supported", "unsupported", "unknown"] },
+          "evidence": { "$ref": "#/$defs/evidence" },
+          "default_whitelist": { "type": "boolean" },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "recommended_changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["file", "change", "evidence", "tests"],
+        "properties": {
+          "file": { "type": "string", "minLength": 1 },
+          "change": { "type": "string", "minLength": 1 },
+          "evidence": { "$ref": "#/$defs/evidence" },
+          "tests": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "open_questions": { "type": "array", "items": { "type": "string" } },
+    "privacy_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bluetooth_addresses_redacted", "no_keys_or_certificates", "no_user_audio", "logs_manually_reviewed", "initial_state_restored", "no_prohibited_commands"],
+      "properties": {
+        "bluetooth_addresses_redacted": { "const": true },
+        "no_keys_or_certificates": { "const": true },
+        "no_user_audio": { "const": true },
+        "logs_manually_reviewed": { "type": "boolean" },
+        "initial_state_restored": { "type": "boolean" },
+        "no_prohibited_commands": { "const": true }
+      }
+    }
+  },
+  "$defs": {
+    "hex": {
+      "type": "string",
+      "pattern": "^([0-9A-F]{2})( [0-9A-F]{2})*$"
+    },
+    "hexOrUnknown": {
+      "oneOf": [
+        { "$ref": "#/$defs/hex" },
+        { "const": "unknown" }
+      ]
+    },
+    "evidence": {
+      "enum": ["static_analysis", "protocol_observed", "hardware_verified", "conflicting", "unsupported", "inconclusive"]
+    },
+    "stateObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["feature_id", "value", "source", "observed_at_utc"],
+      "properties": {
+        "feature_id": { "type": "string", "minLength": 1 },
+        "value": {},
+        "source": { "enum": ["snapshot", "response", "notification", "readback", "manual", "unknown"] },
+        "observed_at_utc": { "type": "string", "format": "date-time" }
+      }
+    },
+    "pdu": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observed_at_utc", "direction", "transport", "opcode", "pdu_type", "result", "sequence", "payload_hex"],
+      "properties": {
+        "observed_at_utc": { "type": "string", "format": "date-time" },
+        "direction": { "enum": ["host_to_device", "device_to_host"] },
+        "transport": { "enum": ["rfcomm_spp", "ble_gatt"] },
+        "opcode": { "type": "string", "pattern": "^[0-9A-F]{4}$" },
+        "pdu_type": { "type": "string", "pattern": "^[0-9A-F]{2}$" },
+        "result": { "type": "integer", "minimum": 0, "maximum": 255 },
+        "sequence": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "payload_hex": { "$ref": "#/$defs/hexOrUnknown" },
+        "latency_ms": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "featureResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["feature_id", "name", "test_status", "evidence", "risk", "declared_supported", "initial_state", "target_state", "restored_state", "ui_update", "transactions", "readback", "manual_observation", "restore_verified", "anomalies", "conclusion"],
+      "properties": {
+        "feature_id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "test_status": { "enum": ["passed", "failed", "skipped", "inconclusive"] },
+        "evidence": { "$ref": "#/$defs/evidence" },
+        "risk": { "enum": ["read_only", "reversible", "disruptive", "prohibited"] },
+        "declared_supported": { "type": ["boolean", "null"] },
+        "initial_state": {},
+        "target_state": {},
+        "restored_state": {},
+        "ui_update": { "enum": ["none", "optimistic", "confirmed", "optimistic_then_corrected", "unknown"] },
+        "transactions": { "type": "array", "items": { "$ref": "#/$defs/pdu" } },
+        "readback": {},
+        "manual_observation": { "type": "string" },
+        "restore_verified": { "type": "boolean" },
+        "anomalies": { "type": "array", "items": { "type": "string" } },
+        "conclusion": { "type": "string", "minLength": 1 }
+      }
+    },
+    "opcodeObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["opcode", "direction", "meaning", "payload_fields", "endianness", "related_opcodes", "evidence"],
+      "properties": {
+        "opcode": { "type": "string", "pattern": "^[0-9A-F]{4}$" },
+        "direction": { "enum": ["host_to_device", "device_to_host", "bidirectional"] },
+        "meaning": { "type": "string", "minLength": 1 },
+        "payload_fields": { "type": "array", "items": { "type": "string" } },
+        "endianness": { "enum": ["none", "little", "big", "mixed", "unknown"] },
+        "related_opcodes": { "type": "array", "items": { "type": "string", "pattern": "^[0-9A-F]{4}$" } },
+        "evidence": { "$ref": "#/$defs/evidence" }
+      }
+    }
+  }
+}
