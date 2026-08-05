@@ -38,6 +38,7 @@ winapp run .\src\MotoBudsManager\bin\x64\Debug\net10.0-windows10.0.26100.0\win-x
 ```
 
 See [INSTALL.md](INSTALL.md) for sideloading and [AGENTS.md](AGENTS.md) for contribution guidance.
+To test a new earbud model with an AI assistant and submit reproducible protocol evidence, follow the [AI device reverse-engineering guide](docs/AI_DEVICE_REVERSE_ENGINEERING_GUIDE.zh-CN.md).
 
 ## Safety and legal notice
 

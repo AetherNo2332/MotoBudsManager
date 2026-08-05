@@ -1,0 +1,112 @@
+name: Device compatibility report
+description: Submit a redacted, structured Moto Buds hardware test and reverse-engineering report.
+title: "[Device] <model> <firmware> compatibility report"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before testing, read `docs/AI_DEVICE_REVERSE_ENGINEERING_GUIDE.zh-CN.md`.
+        Never post a full Bluetooth address, account key, certificate, user audio, or unreviewed raw system log.
+
+  - type: input
+    id: model
+    attributes:
+      label: Model ID
+      description: The protocol-reported model, for example XT2443-1. Use unknown if it could not be confirmed.
+      placeholder: XT2443-1
+    validations:
+      required: true
+
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware version
+      placeholder: 01.00.129.12
+    validations:
+      required: true
+
+  - type: dropdown
+    id: transport
+    attributes:
+      label: Transport
+      options:
+        - RFCOMM/SPP
+        - BLE GATT
+        - Unknown
+    validations:
+      required: true
+
+  - type: input
+    id: color
+    attributes:
+      label: Color ID and observed color
+      placeholder: "2 — observed violet"
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Test environment
+      description: Include Windows version, MotoBudsManager commit, app version, and AI tool/model.
+    validations:
+      required: true
+
+  - type: textarea
+    id: readonly
+    attributes:
+      label: Read-only discovery
+      description: Summarize profile, capability, services, firmware, battery, charging and initial config findings. Use redacted addresses only.
+    validations:
+      required: true
+
+  - type: textarea
+    id: features
+    attributes:
+      label: Feature result summary
+      description: For each feature provide status, evidence level, TX/RX Opcode, readback, manual observation and restore result.
+      placeholder: |
+        ANC: hardware_verified; TX 0201; RX 0200/0204; restored=yes
+        Hi-Res: inconclusive; TX 030D; no notification; restored=yes
+    validations:
+      required: true
+
+  - type: textarea
+    id: reports
+    attributes:
+      label: Structured report links
+      description: Link the schema-valid report.json and report.md in a branch, gist or proposed PR. Do not paste private logs.
+    validations:
+      required: true
+
+  - type: textarea
+    id: anomalies
+    attributes:
+      label: Anomalies and conflicts
+      description: Record timeouts, disconnects, unexpected responses, UI corrections or evidence conflicts. Write none when empty.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: evidence
+    attributes:
+      label: Evidence declaration
+      options:
+        - label: I distinguished static analysis, protocol observation and hardware verification.
+          required: true
+        - label: I did not infer unsupported merely because the device was silent.
+          required: true
+        - label: Every hardware_verified feature was repeated at least twice and restored.
+          required: true
+
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Privacy and safety declaration
+      options:
+        - label: Bluetooth addresses are redacted and no keys, certificates or user audio are included.
+          required: true
+        - label: I manually reviewed every attached log or capture.
+          required: true
+        - label: I did not scan unknown opcodes or run OTA, DFU, factory reset or pairing-clear commands.
+          required: true
+        - label: All tested settings were restored to their initial state.
+          required: true
