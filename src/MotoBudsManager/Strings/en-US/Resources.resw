@@ -21,8 +21,8 @@
   <data name="DevicesTitle.Text" xml:space="preserve"><value>Paired Moto Buds</value></data>
   <data name="DevicesSubtitle.Text" xml:space="preserve"><value>Only devices already paired in Windows are listed.</value></data>
   <data name="RefreshButton.Content" xml:space="preserve"><value>Refresh</value></data>
-  <data name="NoDevicesTitle.Text" xml:space="preserve"><value>No paired earbuds found</value></data>
-  <data name="NoDevicesBody.Text" xml:space="preserve"><value>Pair your earbuds in Windows Bluetooth settings, then refresh this page.</value></data>
+  <data name="NoDevicesTitle.Text" xml:space="preserve"><value>No compatible devices found</value></data>
+  <data name="NoDevicesBody.Text" xml:space="preserve"><value>Make sure compatible Moto Buds are paired in Windows and within range, then refresh.</value></data>
   <data name="OpenBluetoothButton.Content" xml:space="preserve"><value>Open Bluetooth settings</value></data>
   <data name="DeviceOverview.Header" xml:space="preserve"><value>Device overview</value></data>
   <data name="DeviceOverview.Description" xml:space="preserve"><value>Model and transport are derived from paired Bluetooth services.</value></data>
@@ -83,14 +83,16 @@
   <data name="StatusScanningMessage" xml:space="preserve"><value>Reading RFCOMM and GATT services.</value></data>
   <data name="StatusDevicesFound" xml:space="preserve"><value>Devices found</value></data>
   <data name="StatusDevicesFoundMessage" xml:space="preserve"><value>{0} compatible paired device(s) found.</value></data>
-  <data name="StatusNoDevices" xml:space="preserve"><value>No devices found</value></data>
-  <data name="StatusNoDevicesMessage" xml:space="preserve"><value>Pair Moto Buds in Windows Bluetooth settings and refresh.</value></data>
+  <data name="StatusNoDevices" xml:space="preserve"><value>No compatible devices found</value></data>
+  <data name="StatusNoDevicesMessage" xml:space="preserve"><value>Make sure compatible Moto Buds are paired, Bluetooth is on, and the earbuds are within range.</value></data>
   <data name="StatusScanFailed" xml:space="preserve"><value>Discovery failed</value></data>
   <data name="StatusConnecting" xml:space="preserve"><value>Connecting</value></data>
   <data name="StatusConnected" xml:space="preserve"><value>Connected</value></data>
   <data name="StatusConnectionFailed" xml:space="preserve"><value>Connection failed</value></data>
   <data name="StatusDisconnected" xml:space="preserve"><value>Disconnected</value></data>
   <data name="StatusDisconnectedMessage" xml:space="preserve"><value>The Bluetooth session has been closed.</value></data>
+  <data name="StatusConnectionLost" xml:space="preserve"><value>Connection lost</value></data>
+  <data name="StatusConnectionLostMessage" xml:space="preserve"><value>The earbuds disconnected from Windows. Check Bluetooth and try again.</value></data>
   <data name="StatusAncVerified" xml:space="preserve"><value>ANC state verified</value></data>
   <data name="StatusAncFailed" xml:space="preserve"><value>ANC change failed</value></data>
   <data name="AncOn" xml:space="preserve"><value>Standard ANC is on.</value></data>
@@ -131,8 +133,14 @@
   <data name="AncControlCard.Header" xml:space="preserve"><value>Noise control</value></data>
   <data name="AncTransparencyItem.Text" xml:space="preserve"><value>Transparency</value></data>
   <data name="AdaptiveCard.Header" xml:space="preserve"><value>Adaptive hearing</value></data>
+  <data name="SpatialCard.Header" xml:space="preserve"><value>Spatial audio</value></data>
+  <data name="SpatialOffItem.Text" xml:space="preserve"><value>Off</value></data>
+  <data name="SpatialOnItem.Text" xml:space="preserve"><value>On</value></data>
+  <data name="SpatialTrackingItem.Text" xml:space="preserve"><value>Tracking</value></data>
   <data name="HiResCard.Header" xml:space="preserve"><value>Hi-Res audio</value></data>
   <data name="GamingCard.Header" xml:space="preserve"><value>Gaming mode</value></data>
+  <data name="AutomaticVolumeCard.Header" xml:space="preserve"><value>Automatic volume</value></data>
+  <data name="BassBoostCard.Header" xml:space="preserve"><value>Bass boost</value></data>
   <data name="VolumeBoostCard.Header" xml:space="preserve"><value>Volume boost</value></data>
   <data name="InEarCard.Header" xml:space="preserve"><value>In-ear detection</value></data>
   <data name="DualConnectionCard.Header" xml:space="preserve"><value>Dual connection</value></data>
@@ -149,6 +157,10 @@
   <data name="UntestedDeviceTitle" xml:space="preserve"><value>Features are not hardware-tested</value></data>
   <data name="UntestedDeviceBody" xml:space="preserve"><value>{0} ({1}) has not been hardware-verified with this app. Continue to connect it and open the Experimental Lab.</value></data>
   <data name="Xt2443ControlsUnavailable" xml:space="preserve"><value>Connect an XT2443-1 RFCOMM device.</value></data>
+  <data name="DeviceControlsUnavailable" xml:space="preserve"><value>Connect a compatible device that supports this feature.</value></data>
+  <data name="StatusReadbackVerified" xml:space="preserve"><value>The device state was confirmed by read-back.</value></data>
+  <data name="StaticAdaptationInfo.Title" xml:space="preserve"><value>Static model adaptation</value></data>
+  <data name="StaticAdaptationInfo.Message" xml:space="preserve"><value>Controls shown for this model are based on protocol analysis and have not been hardware-tested in this app.</value></data>
   <data name="StatusFeatureUpdated" xml:space="preserve"><value>Setting updated</value></data>
   <data name="StatusFeatureFailed" xml:space="preserve"><value>Setting failed</value></data>
   <data name="FeatureOn" xml:space="preserve"><value>Enabled and confirmed by read-back.</value></data>

@@ -18,6 +18,7 @@ public sealed class RequestDispatcher : IAsyncDisposable
         _transport = transport;
         _timeout = timeout ?? TimeSpan.FromSeconds(5);
         _transport.PduReceived += OnPduReceived;
+        _transport.Disconnected += OnDisconnected;
     }
 
     public ushort NextSequenceForTesting => _nextSequence;
@@ -69,6 +70,7 @@ public sealed class RequestDispatcher : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         _transport.PduReceived -= OnPduReceived;
+        _transport.Disconnected -= OnDisconnected;
         _sendGate.Dispose();
         await _transport.DisposeAsync().ConfigureAwait(false);
     }
@@ -87,6 +89,15 @@ public sealed class RequestDispatcher : IAsyncDisposable
         }
 
         MessageReceived?.Invoke(this, args);
+    }
+
+    private void OnDisconnected(object? sender, EventArgs args)
+    {
+        lock (_pendingLock)
+        {
+            _pending?.Completion.TrySetException(
+                new IOException("The Bluetooth connection was lost while waiting for a device response."));
+        }
     }
 
     private sealed record PendingRequest(

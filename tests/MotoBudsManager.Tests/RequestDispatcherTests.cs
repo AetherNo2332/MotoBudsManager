@@ -49,6 +49,19 @@ public sealed class RequestDispatcherTests
     }
 
     [Fact]
+    public async Task SendAsync_TransportDisconnects_FailsImmediately()
+    {
+        await using var transport = new FakeTransport(_ => null);
+        await transport.ConnectAsync(CancellationToken.None);
+        await using var dispatcher = new RequestDispatcher(transport, TimeSpan.FromSeconds(5));
+
+        var pending = dispatcher.SendAsync(1, Array.Empty<byte>());
+        transport.EmitDisconnected();
+
+        await Assert.ThrowsAsync<IOException>(() => pending.WaitAsync(TimeSpan.FromMilliseconds(250)));
+    }
+
+    [Fact]
     public async Task MessageReceived_ForwardsUnsolicitedBatteryNotification()
     {
         await using var transport = new FakeTransport(_ => null);
@@ -252,6 +265,40 @@ public sealed class RequestDispatcherTests
         Assert.Equal(new byte[] { 0x00 }, requests[4].Payload);
     }
 
+    [Theory]
+    [InlineData(ExperimentalFeature.SpatialAudio, 2, 0x030A, 0x030B, "01 01")]
+    [InlineData(ExperimentalFeature.HiRes, 1, 0x030C, 0x030D, "01")]
+    [InlineData(ExperimentalFeature.GamingMode, 1, 0x030E, 0x030F, "01")]
+    [InlineData(ExperimentalFeature.BassBoost, 1, 0x031C, 0x031D, "01")]
+    [InlineData(ExperimentalFeature.InEarDetection, 1, 0x0402, 0x0403, "01")]
+    public async Task SetFeature_StaticModel_UsesWriteThenReadback(
+        ExperimentalFeature feature,
+        int value,
+        ushort getOpcode,
+        ushort setOpcode,
+        string readbackHex)
+    {
+        var requests = new List<PduMessage>();
+        await using var transport = new FakeTransport(message =>
+        {
+            requests.Add(message);
+            return new(message.Opcode, PduType.ResponseNoAck, 0, message.Sequence,
+                message.Opcode == getOpcode ? ProtocolCodecTests.Hex(readbackHex) : []);
+        });
+        await transport.ConnectAsync(CancellationToken.None);
+        await using var dispatcher = new RequestDispatcher(transport, TimeSpan.FromSeconds(1));
+        var client = new MotoBudsClient(dispatcher,
+            new MotoBudsDevice("test", "moto buds plus", 0, "XT2641-1", 1, 0x10,
+                TransportKind.Rfcomm, EvidenceLevel.StaticAnalysis), TimeSpan.Zero);
+
+        var result = await client.SetFeatureAsync(feature, value);
+
+        Assert.True(result.Success);
+        Assert.Equal(setOpcode, requests[0].Opcode);
+        Assert.Equal(getOpcode, requests[1].Opcode);
+        Assert.True(result.StateVerified);
+    }
+
     private static MotoBudsClient CreateXt2443Client(RequestDispatcher dispatcher) =>
         new(dispatcher,
             new MotoBudsDevice("test", "moto buds", 0, "XT2443-1", 3, 0x10,
@@ -294,6 +341,12 @@ public sealed class RequestDispatcherTests
         }
 
         public void Emit(PduMessage message) => PduReceived?.Invoke(this, new(message));
+
+        public void EmitDisconnected()
+        {
+            IsConnected = false;
+            Disconnected?.Invoke(this, EventArgs.Empty);
+        }
 
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }

@@ -23,9 +23,19 @@ public sealed class BatteryStateChangedEventArgs(
     public BatteryUpdateSource Source { get; } = source;
 }
 
-public sealed class SessionDisconnectedEventArgs(MotoBudsDevice device) : EventArgs
+public enum SessionDisconnectReason
+{
+    Requested,
+    TransportLost,
+}
+
+public sealed class SessionDisconnectedEventArgs(
+    MotoBudsDevice device,
+    SessionDisconnectReason reason) : EventArgs
 {
     public MotoBudsDevice Device { get; } = device;
+
+    public SessionDisconnectReason Reason { get; } = reason;
 }
 
 public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTestMode = false) : IAsyncDisposable
@@ -63,23 +73,44 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
                 : new BleGattTransport(device, log);
         }
 
-        _transport.Disconnected += OnTransportDisconnected;
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeout.CancelAfter(TimeSpan.FromSeconds(10));
-        await _transport.ConnectAsync(timeout.Token).ConfigureAwait(false);
-        _dispatcher = new RequestDispatcher(_transport, TimeSpan.FromSeconds(5));
-        _dispatcher.MessageReceived += OnMessageReceived;
         Device = device;
-        Client = new MotoBudsClient(_dispatcher, device);
+        Client = null;
         Volatile.Write(ref _disconnectRaised, 0);
-
+        _transport.Disconnected += OnTransportDisconnected;
         try
         {
-            await QueryBatterySnapshotAsync(cancellationToken).ConfigureAwait(false);
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeout.CancelAfter(TimeSpan.FromSeconds(10));
+            await _transport.ConnectAsync(timeout.Token).ConfigureAwait(false);
+            EnsureTransportConnected();
+
+            _dispatcher = new RequestDispatcher(_transport, TimeSpan.FromSeconds(5));
+            _dispatcher.MessageReceived += OnMessageReceived;
+            Client = new MotoBudsClient(_dispatcher, device);
+
+            try
+            {
+                await QueryBatterySnapshotAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                log.Write($"Initial battery snapshot failed for {device.ModelId}: {exception.Message}");
+            }
+
+            EnsureTransportConnected();
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch
         {
-            log.Write($"Initial battery snapshot failed for {device.ModelId}: {exception.Message}");
+            try
+            {
+                await DisconnectAsync().ConfigureAwait(false);
+            }
+            catch (Exception cleanupException)
+            {
+                log.Write($"Connection cleanup failed for {device.ModelId}: {cleanupException.Message}");
+            }
+
+            throw;
         }
     }
 
@@ -115,7 +146,7 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
     public async Task DisconnectAsync()
     {
         var disconnectedDevice = Device;
-        if (Client is { HasTransientActions: true } && disconnectedDevice?.IsXt2443ControlTarget == true)
+        if (Client is { HasTransientActions: true } && disconnectedDevice is not null)
         {
             using var stopTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(1));
             try
@@ -162,7 +193,7 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
 
         if (disconnectedDevice is not null)
         {
-            RaiseDisconnected(disconnectedDevice);
+            RaiseDisconnected(disconnectedDevice, SessionDisconnectReason.Requested);
         }
     }
 
@@ -179,7 +210,7 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
         {
             var device = Device;
             var client = Client;
-            if (device is null || client is null || !IsConnected || !device.IsXt2443ControlTarget)
+            if (device is null || client is null || !IsConnected || !ProductCatalog.IsKnownModel(device.ModelId))
             {
                 return null;
             }
@@ -229,21 +260,36 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
 
     private void OnTransportDisconnected(object? sender, EventArgs args)
     {
+        if (!ReferenceEquals(sender, _transport))
+        {
+            return;
+        }
+
         var device = Device;
         if (device is null)
         {
             return;
         }
 
+        Client = null;
+        Device = null;
         _batteryCache.Remove(DeviceKey(device));
-        RaiseDisconnected(device);
+        RaiseDisconnected(device, SessionDisconnectReason.TransportLost);
     }
 
-    private void RaiseDisconnected(MotoBudsDevice device)
+    private void RaiseDisconnected(MotoBudsDevice device, SessionDisconnectReason reason)
     {
         if (Interlocked.Exchange(ref _disconnectRaised, 1) == 0)
         {
-            Disconnected?.Invoke(this, new(device));
+            Disconnected?.Invoke(this, new(device, reason));
+        }
+    }
+
+    private void EnsureTransportConnected()
+    {
+        if (!IsConnected || Device is null)
+        {
+            throw new IOException("The Bluetooth device disconnected while the session was being initialized.");
         }
     }
 

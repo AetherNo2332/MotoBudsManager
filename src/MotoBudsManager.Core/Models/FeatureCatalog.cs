@@ -5,6 +5,7 @@ namespace MotoBudsManager.Core.Models;
 public enum ExperimentalFeature
 {
     Anc,
+    AdaptiveHearing,
     SpatialAudio,
     HiRes,
     GamingMode,
@@ -13,6 +14,8 @@ public enum ExperimentalFeature
     VolumeBoost,
     InEarDetection,
     FindEarbuds,
+    FitTest,
+    DualConnection,
 }
 
 public sealed record FeatureCommand(
@@ -27,6 +30,7 @@ public static class ModelCatalog
         new Dictionary<ExperimentalFeature, HashSet<string>>
         {
             [ExperimentalFeature.Anc] = Set("XT2441-1", "XT2443-1", "XT2641-1", "XT2643-1"),
+            [ExperimentalFeature.AdaptiveHearing] = Set("XT2443-1"),
             [ExperimentalFeature.SpatialAudio] = Set("XT2441-1", "XT2641-1"),
             [ExperimentalFeature.HiRes] = Set("XT2441-1", "XT2443-1", "XT2641-1", "XT2643-1"),
             [ExperimentalFeature.GamingMode] = Set("XT2441-1", "XT2443-1", "XT2545-1", "XT2641-1", "XT2643-1"),
@@ -35,6 +39,8 @@ public static class ModelCatalog
             [ExperimentalFeature.VolumeBoost] = Set("XT2441-1", "XT2443-1", "XT2643-1"),
             [ExperimentalFeature.InEarDetection] = Set("XT2441-1", "XT2443-1", "XT2545-1", "XT2641-1", "XT2643-1"),
             [ExperimentalFeature.FindEarbuds] = Set("XT2441-1", "XT2443-1", "XT2545-1", "XT2641-1", "XT2643-1"),
+            [ExperimentalFeature.FitTest] = Set("XT2441-1", "XT2443-1", "XT2641-1", "XT2643-1"),
+            [ExperimentalFeature.DualConnection] = Set("XT2441-1", "XT2443-1", "XT2545-1", "XT2641-1", "XT2643-1"),
         };
 
     public static bool Supports(string modelId, ExperimentalFeature feature) =>
@@ -55,6 +61,7 @@ public static class ModelCatalog
                 1 => [0x01, 0x01],
                 _ => throw InvalidValue(feature, value),
             }, EvidenceLevel.StaticAnalysis),
+            ExperimentalFeature.AdaptiveHearing => Toggle(feature, 0x0203, value),
             ExperimentalFeature.SpatialAudio => new(feature, 0x030B, value switch
             {
                 0 => [0x00, 0x00],
@@ -76,6 +83,13 @@ public static class ModelCatalog
                 3 => [0x01, 0x01],
                 _ => throw InvalidValue(feature, value),
             }, EvidenceLevel.StaticAnalysis),
+            ExperimentalFeature.FitTest => Toggle(feature, 0x0400, value),
+            ExperimentalFeature.DualConnection => new(feature, 0x0407, value switch
+            {
+                0 => [0x01, 0x00],
+                1 => [0x01, 0x01],
+                _ => throw InvalidValue(feature, value),
+            }, EvidenceLevel.StaticAnalysis),
             _ => throw new ArgumentOutOfRangeException(nameof(feature)),
         };
     }
@@ -91,7 +105,7 @@ public static class ModelCatalog
         }
 
         var first = text[..8];
-        if (first.Equals("fc9d9fe0", StringComparison.OrdinalIgnoreCase) ||
+        if (first is "fc9d9fe0" or "00009fe0" ||
             !byte.TryParse(first.AsSpan(0, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var a) ||
             !byte.TryParse(first.AsSpan(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var b) ||
             !byte.TryParse(first.AsSpan(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var suffix) ||
@@ -101,7 +115,14 @@ public static class ModelCatalog
         }
 
         modelId = $"XT{a}{b}-{suffix}";
-        return true;
+        if (ProductCatalog.IsKnownModel(modelId))
+        {
+            return true;
+        }
+
+        modelId = string.Empty;
+        colorId = 0;
+        return false;
     }
 
     private static FeatureCommand Toggle(ExperimentalFeature feature, ushort opcode, int value)

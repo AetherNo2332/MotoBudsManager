@@ -11,7 +11,7 @@
   <Identity
     Name="E16B81D3-E5E8-4927-BAFC-4DDFA42DCA08"
     Publisher="CN=MotoBudsManager.Development"
-    Version="1.4.5.0" />
+    Version="1.5.1.0" />
 
   <mp:PhoneIdentity PhoneProductId="E16B81D3-E5E8-4927-BAFC-4DDFA42DCA08" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

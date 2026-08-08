@@ -64,7 +64,7 @@ public sealed class MotoBudsClient(
 
     public async Task<AncState> GetAncStateAsync(CancellationToken cancellationToken = default)
     {
-        EnsureXt2443Target();
+        EnsureFeatureSupported(ExperimentalFeature.Anc);
         var response = await dispatcher.SendAsync(0x0200, ReadOnlyMemory<byte>.Empty, cancellationToken)
             .ConfigureAwait(false);
         EnsureSuccessful(response);
@@ -95,7 +95,7 @@ public sealed class MotoBudsClient(
 
     public async Task<EarbudBatteryState> GetBatteryStateAsync(CancellationToken cancellationToken = default)
     {
-        EnsureXt2443Target();
+        EnsureKnownModel();
         var response = await dispatcher.SendAsync(BatteryProtocol.GetBatteryLevelOpcode, ReadOnlyMemory<byte>.Empty, cancellationToken)
             .ConfigureAwait(false);
         EnsureSuccessful(response);
@@ -104,14 +104,19 @@ public sealed class MotoBudsClient(
 
     public Task<bool> GetXt2443ToggleAsync(
         Xt2443ToggleFeature feature,
-        CancellationToken cancellationToken = default) =>
-        GetBooleanStateAsync(GetToggleOpcodes(feature).Get, cancellationToken);
+        CancellationToken cancellationToken = default)
+    {
+        var mappedFeature = MapToggleFeature(feature);
+        EnsureFeatureSupported(mappedFeature);
+        return GetBooleanStateAsync(GetToggleOpcodes(feature).Get, cancellationToken);
+    }
 
     public Task<CommandResult> SetXt2443ToggleAsync(
         Xt2443ToggleFeature feature,
         bool enabled,
         CancellationToken cancellationToken = default)
     {
+        EnsureFeatureSupported(MapToggleFeature(feature));
         var opcodes = GetToggleOpcodes(feature);
         return SetVerifiedAsync(opcodes.Set, [(byte)(enabled ? 1 : 0)], opcodes.Get,
             payload => payload.Length >= 1 && (payload[0] != 0) == enabled,
@@ -121,7 +126,7 @@ public sealed class MotoBudsClient(
     public async Task<DualConnectionState> GetDualConnectionStateAsync(
         CancellationToken cancellationToken = default)
     {
-        EnsureXt2443Target();
+        EnsureFeatureSupported(ExperimentalFeature.DualConnection);
         var response = await dispatcher.SendAsync(0x0406, ReadOnlyMemory<byte>.Empty, cancellationToken)
             .ConfigureAwait(false);
         EnsureSuccessful(response);
@@ -137,6 +142,7 @@ public sealed class MotoBudsClient(
         bool enabled,
         CancellationToken cancellationToken = default)
     {
+        EnsureFeatureSupported(ExperimentalFeature.DualConnection);
         try
         {
             var current = await GetDualConnectionStateAsync(cancellationToken).ConfigureAwait(false);
@@ -159,6 +165,7 @@ public sealed class MotoBudsClient(
         EarbudRingTarget target,
         CancellationToken cancellationToken = default)
     {
+        EnsureFeatureSupported(ExperimentalFeature.FindEarbuds);
         var result = await SendActionAsync(0x0405, target switch
         {
             EarbudRingTarget.Stop => [0x00, 0x00],
@@ -178,6 +185,7 @@ public sealed class MotoBudsClient(
         bool enabled,
         CancellationToken cancellationToken = default)
     {
+        EnsureFeatureSupported(ExperimentalFeature.FitTest);
         var result = await SendActionAsync(0x0400, [(byte)(enabled ? 1 : 0)], cancellationToken)
             .ConfigureAwait(false);
         if (result.Success)
@@ -224,9 +232,50 @@ public sealed class MotoBudsClient(
         }
     }
 
+    public async Task<int> GetFeatureStateAsync(
+        ExperimentalFeature feature,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureFeatureSupported(feature);
+        if (feature == ExperimentalFeature.Anc)
+        {
+            return (await GetAncStateAsync(cancellationToken).ConfigureAwait(false)).Mode;
+        }
+
+        var getOpcode = GetFeatureOpcodes(feature).Get;
+        var response = await dispatcher.SendAsync(getOpcode, ReadOnlyMemory<byte>.Empty, cancellationToken)
+            .ConfigureAwait(false);
+        EnsureSuccessful(response);
+        if (response.Payload.Length < 1)
+        {
+            throw new InvalidDataException($"Response 0x{getOpcode:X4} did not contain a state byte.");
+        }
+
+        return feature == ExperimentalFeature.SpatialAudio
+            ? response.Payload[0] == 0 ? 0 : response.Payload.Length > 1 && response.Payload[1] != 0 ? 2 : 1
+            : response.Payload[0] != 0 ? 1 : 0;
+    }
+
+    public Task<CommandResult> SetFeatureAsync(
+        ExperimentalFeature feature,
+        int value,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureFeatureSupported(feature);
+        if (feature == ExperimentalFeature.Anc)
+        {
+            return SetAncModeAsync((AncModeValue)value, cancellationToken);
+        }
+
+        var command = ModelCatalog.CreateCommand(device.ModelId, feature, value);
+        var getOpcode = GetFeatureOpcodes(feature).Get;
+        return SetVerifiedAsync(command.Opcode, command.Payload, getOpcode,
+            payload => FeaturePayloadMatches(feature, value, payload), cancellationToken);
+    }
+
     private async Task<CommandResult> SetAncAsync(AncState expected, CancellationToken cancellationToken)
     {
-        EnsureXt2443Target();
+        EnsureFeatureSupported(ExperimentalFeature.Anc);
         try
         {
             var response = await dispatcher.SendAsync(0x0201, new byte[] { expected.Mode, expected.Subtype }, cancellationToken)
@@ -266,7 +315,6 @@ public sealed class MotoBudsClient(
         ushort opcode,
         CancellationToken cancellationToken)
     {
-        EnsureXt2443Target();
         var response = await dispatcher.SendAsync(opcode, ReadOnlyMemory<byte>.Empty, cancellationToken)
             .ConfigureAwait(false);
         EnsureSuccessful(response);
@@ -285,7 +333,6 @@ public sealed class MotoBudsClient(
         Func<byte[], bool> isExpected,
         CancellationToken cancellationToken)
     {
-        EnsureXt2443Target();
         PduMessage? acknowledgement = null;
         try
         {
@@ -318,7 +365,6 @@ public sealed class MotoBudsClient(
         byte[] payload,
         CancellationToken cancellationToken)
     {
-        EnsureXt2443Target();
         try
         {
             var response = await dispatcher.SendAsync(opcode, payload, cancellationToken).ConfigureAwait(false);
@@ -334,7 +380,6 @@ public sealed class MotoBudsClient(
 
     private (ushort Get, ushort Set) GetToggleOpcodes(Xt2443ToggleFeature feature)
     {
-        EnsureXt2443Target();
         return feature switch
         {
             Xt2443ToggleFeature.AdaptiveHearing => (0x0202, 0x0203),
@@ -346,11 +391,63 @@ public sealed class MotoBudsClient(
         };
     }
 
-    private void EnsureXt2443Target()
+    private static (ushort Get, ushort Set) GetFeatureOpcodes(ExperimentalFeature feature) => feature switch
     {
-        if (!device.IsXt2443ControlTarget)
+        ExperimentalFeature.AdaptiveHearing => (0x0202, 0x0203),
+        ExperimentalFeature.SpatialAudio => (0x030A, 0x030B),
+        ExperimentalFeature.HiRes => (0x030C, 0x030D),
+        ExperimentalFeature.GamingMode => (0x030E, 0x030F),
+        ExperimentalFeature.VolumeBoost => (0x0313, 0x0314),
+        ExperimentalFeature.AutomaticVolume => (0x0316, 0x0317),
+        ExperimentalFeature.BassBoost => (0x031C, 0x031D),
+        ExperimentalFeature.InEarDetection => (0x0402, 0x0403),
+        _ => throw new NotSupportedException($"{feature} does not expose a reliable read-back state."),
+    };
+
+    private static bool FeaturePayloadMatches(ExperimentalFeature feature, int value, byte[] payload)
+    {
+        if (payload.Length < 1)
         {
-            throw new NotSupportedException("Hardware-verified controls require an XT2443-1 RFCOMM device.");
+            return false;
+        }
+
+        if (feature != ExperimentalFeature.SpatialAudio)
+        {
+            return (payload[0] != 0) == (value != 0);
+        }
+
+        return value switch
+        {
+            0 => payload[0] == 0,
+            1 => payload[0] != 0 && (payload.Length < 2 || payload[1] == 0),
+            2 => payload[0] != 0 && payload.Length > 1 && payload[1] != 0,
+            _ => false,
+        };
+    }
+
+    private static ExperimentalFeature MapToggleFeature(Xt2443ToggleFeature feature) => feature switch
+    {
+        Xt2443ToggleFeature.AdaptiveHearing => ExperimentalFeature.AdaptiveHearing,
+        Xt2443ToggleFeature.HiRes => ExperimentalFeature.HiRes,
+        Xt2443ToggleFeature.GamingMode => ExperimentalFeature.GamingMode,
+        Xt2443ToggleFeature.VolumeBoost => ExperimentalFeature.VolumeBoost,
+        Xt2443ToggleFeature.InEarDetection => ExperimentalFeature.InEarDetection,
+        _ => throw new ArgumentOutOfRangeException(nameof(feature)),
+    };
+
+    private void EnsureFeatureSupported(ExperimentalFeature feature)
+    {
+        if (!ModelCatalog.Supports(device.ModelId, feature))
+        {
+            throw new NotSupportedException($"{feature} is not supported for {device.ModelId}.");
+        }
+    }
+
+    private void EnsureKnownModel()
+    {
+        if (!ProductCatalog.IsKnownModel(device.ModelId))
+        {
+            throw new NotSupportedException($"Battery state is not supported for {device.ModelId}.");
         }
     }
 

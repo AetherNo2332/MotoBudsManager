@@ -31,6 +31,27 @@ public sealed class ModelCatalogTests
         Assert.Equal(3, color);
     }
 
+    [Theory]
+    [InlineData("fc9d9fe0-4899-11ee-be56-0242ac120002")]
+    [InlineData("00009fe0-4899-11ee-be56-0242ac120002")]
+    public void ModelUuid_Parse_ControlServiceUuid_IsRejected(string uuid)
+    {
+        var parsed = ModelCatalog.TryParseModelUuid(Guid.Parse(uuid), out var model, out _);
+
+        Assert.False(parsed);
+        Assert.Empty(model);
+    }
+
+    [Theory]
+    [InlineData("XT2443-1", true)]
+    [InlineData("XT2641-1", true)]
+    [InlineData("XT00-159", false)]
+    [InlineData("Unknown", false)]
+    public void ProductCatalog_RecognizesOnlySupportedModels(string model, bool expected)
+    {
+        Assert.Equal(expected, ProductCatalog.IsKnownModel(model));
+    }
+
     [Fact]
     public void FeatureCatalog_RejectsAncForLoopModel()
     {
@@ -86,4 +107,20 @@ public sealed class ModelCatalogTests
         Assert.Equal((ushort)0x030B, command.Opcode);
         Assert.Equal(ProtocolCodecTests.Hex(expected), command.Payload);
     }
+
+    [Theory]
+    [InlineData("XT2545-1", ExperimentalFeature.AutomaticVolume, true)]
+    [InlineData("XT2545-1", ExperimentalFeature.Anc, false)]
+    [InlineData("XT2641-1", ExperimentalFeature.SpatialAudio, true)]
+    [InlineData("XT2641-1", ExperimentalFeature.VolumeBoost, false)]
+    [InlineData("XT2643-1", ExperimentalFeature.VolumeBoost, true)]
+    [InlineData("XT2441-1", ExperimentalFeature.AdaptiveHearing, false)]
+    [InlineData("XT2443-1", ExperimentalFeature.AdaptiveHearing, true)]
+    [InlineData("XT2545-1", ExperimentalFeature.FitTest, false)]
+    [InlineData("XT2545-1", ExperimentalFeature.DualConnection, true)]
+    public void FeatureCatalog_UsesDocumentedModelWhitelist(
+        string model,
+        ExperimentalFeature feature,
+        bool expected) =>
+        Assert.Equal(expected, ModelCatalog.Supports(model, feature));
 }
