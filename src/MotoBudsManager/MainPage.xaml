@@ -340,7 +340,6 @@
                                     x:Name="StableAncCard"
                                     x:Uid="AncControlCard"
                                     AutomationProperties.AutomationId="AncControlCard"
-                                    ContentAlignment="Left"
                                     IsEnabled="{x:Bind ViewModel.CanUseAnc, Mode=OneWay}"
                                     MinHeight="116">
                                     <SelectorBar
@@ -353,7 +352,7 @@
                                     </SelectorBar>
                                 </controls:SettingsCard>
 
-                                <controls:SettingsCard x:Name="AdaptiveCard" x:Uid="AdaptiveCard" Grid.Column="1" AutomationProperties.AutomationId="AdaptiveCard" ContentAlignment="Left" IsEnabled="{x:Bind ViewModel.CanUseAdaptiveHearing, Mode=OneWay}" MinHeight="116">
+                                <controls:SettingsCard x:Name="AdaptiveCard" x:Uid="AdaptiveCard" Grid.Column="1" AutomationProperties.AutomationId="AdaptiveCard" IsEnabled="{x:Bind ViewModel.CanUseAdaptiveHearing, Mode=OneWay}" MinHeight="116">
                                     <ToggleSwitch
                                         x:Uid="FeatureToggle"
                                         AutomationProperties.AutomationId="AdaptiveHearingToggle"
@@ -362,7 +361,7 @@
                                         Toggled="OnXt2443ToggleToggled" />
                                 </controls:SettingsCard>
 
-                                <controls:SettingsCard x:Name="SpatialCard" x:Uid="SpatialCard" Grid.Row="1" AutomationProperties.AutomationId="SpatialCard" ContentAlignment="Left" IsEnabled="{x:Bind ViewModel.CanUseSpatialAudio, Mode=OneWay}" MinHeight="116">
+                                <controls:SettingsCard x:Name="SpatialCard" x:Uid="SpatialCard" Grid.Row="1" AutomationProperties.AutomationId="SpatialCard" IsEnabled="{x:Bind ViewModel.CanUseSpatialAudio, Mode=OneWay}" MinHeight="116">
                                     <SelectorBar
                                         x:Name="SpatialSelector"
                                         AutomationProperties.AutomationId="SpatialSelector"
@@ -373,7 +372,7 @@
                                     </SelectorBar>
                                 </controls:SettingsCard>
 
-                                <controls:SettingsCard x:Name="HiResCard" x:Uid="HiResCard" Grid.Row="1" Grid.Column="1" AutomationProperties.AutomationId="HiResCard" ContentAlignment="Left" IsEnabled="{x:Bind ViewModel.CanUseHiRes, Mode=OneWay}" MinHeight="116">
+                                <controls:SettingsCard x:Name="HiResCard" x:Uid="HiResCard" Grid.Row="1" Grid.Column="1" AutomationProperties.AutomationId="HiResCard" IsEnabled="{x:Bind ViewModel.CanUseHiRes, Mode=OneWay}" MinHeight="116">
                                     <ToggleSwitch
                                         x:Uid="FeatureToggle"
                                         AutomationProperties.AutomationId="HiResToggle"
@@ -382,7 +381,7 @@
                                         Toggled="OnXt2443ToggleToggled" />
                                 </controls:SettingsCard>
 
-                                <controls:SettingsCard x:Name="GamingCard" x:Uid="GamingCard" Grid.Row="2" AutomationProperties.AutomationId="GamingCard" ContentAlignment="Left" IsEnabled="{x:Bind ViewModel.CanUseGaming, Mode=OneWay}" MinHeight="116">
+                                <controls:SettingsCard x:Name="GamingCard" x:Uid="GamingCard" Grid.Row="2" AutomationProperties.AutomationId="GamingCard" IsEnabled="{x:Bind ViewModel.CanUseGaming, Mode=OneWay}" MinHeight="116">
                                     <ToggleSwitch
                                         x:Uid="FeatureToggle"
                                         AutomationProperties.AutomationId="GamingModeToggle"
@@ -391,7 +390,7 @@
                                         Toggled="OnXt2443ToggleToggled" />
                                 </controls:SettingsCard>
 
-                                <controls:SettingsCard x:Name="AutomaticVolumeCard" x:Uid="AutomaticVolumeCard" Grid.Row="2" Grid.Column="1" AutomationProperties.AutomationId="AutomaticVolumeCard" ContentAlignment="Left" IsEnabled="{x:Bind ViewModel.CanUseAutomaticVolume, Mode=OneWay}" MinHeight="116">
+                                <controls:SettingsCard x:Name="AutomaticVolumeCard" x:Uid="AutomaticVolumeCard" Grid.Row="2" Grid.Column="1" AutomationProperties.AutomationId="AutomaticVolumeCard" IsEnabled="{x:Bind ViewModel.CanUseAutomaticVolume, Mode=OneWay}" MinHeight="116">
                                     <ToggleSwitch
                                         x:Uid="FeatureToggle"
                                         AutomationProperties.AutomationId="AutomaticVolumeToggle"
@@ -400,7 +399,7 @@
                                         Toggled="OnFeatureToggleToggled" />
                                 </controls:SettingsCard>
 
-                                <controls:SettingsCard x:Name="BassBoostCard" x:Uid="BassBoostCard" Grid.Row="3" AutomationProperties.AutomationId="BassBoostCard" ContentAlignment="Left" IsEnabled="{x:Bind ViewModel.CanUseBassBoost, Mode=OneWay}" MinHeight="116">
+                                <controls:SettingsCard x:Name="BassBoostCard" x:Uid="BassBoostCard" Grid.Row="3" AutomationProperties.AutomationId="BassBoostCard" IsEnabled="{x:Bind ViewModel.CanUseBassBoost, Mode=OneWay}" MinHeight="116">
                                     <ToggleSwitch
                                         x:Uid="FeatureToggle"
                                         AutomationProperties.AutomationId="BassBoostToggle"
@@ -409,7 +408,7 @@
                                         Toggled="OnFeatureToggleToggled" />
                                 </controls:SettingsCard>
 
-                                <controls:SettingsCard x:Name="VolumeBoostCard" x:Uid="VolumeBoostCard" Grid.Row="3" Grid.Column="1" AutomationProperties.AutomationId="VolumeBoostCard" ContentAlignment="Left" IsEnabled="{x:Bind ViewModel.CanUseVolumeBoost, Mode=OneWay}" MinHeight="116">
+                                <controls:SettingsCard x:Name="VolumeBoostCard" x:Uid="VolumeBoostCard" Grid.Row="3" Grid.Column="1" AutomationProperties.AutomationId="VolumeBoostCard" IsEnabled="{x:Bind ViewModel.CanUseVolumeBoost, Mode=OneWay}" MinHeight="116">
                                     <ToggleSwitch
                                         x:Uid="FeatureToggle"
                                         AutomationProperties.AutomationId="VolumeBoostToggle"
@@ -418,7 +417,7 @@
                                         Toggled="OnXt2443ToggleToggled" />
                                 </controls:SettingsCard>
 
-                                <controls:SettingsCard x:Name="InEarCard" x:Uid="InEarCard" Grid.Row="4" AutomationProperties.AutomationId="InEarCard" ContentAlignment="Left" IsEnabled="{x:Bind ViewModel.CanUseInEarDetection, Mode=OneWay}" MinHeight="116">
+                                <controls:SettingsCard x:Name="InEarCard" x:Uid="InEarCard" Grid.Row="4" AutomationProperties.AutomationId="InEarCard" IsEnabled="{x:Bind ViewModel.CanUseInEarDetection, Mode=OneWay}" MinHeight="116">
                                     <ToggleSwitch
                                         x:Uid="FeatureToggle"
                                         AutomationProperties.AutomationId="InEarDetectionToggle"
@@ -427,7 +426,7 @@
                                         Toggled="OnXt2443ToggleToggled" />
                                 </controls:SettingsCard>
 
-                                <controls:SettingsCard x:Name="DualConnectionCard" x:Uid="DualConnectionCard" Grid.Row="4" Grid.Column="1" AutomationProperties.AutomationId="DualConnectionCard" ContentAlignment="Left" IsEnabled="{x:Bind ViewModel.CanUseDualConnection, Mode=OneWay}" MinHeight="116">
+                                <controls:SettingsCard x:Name="DualConnectionCard" x:Uid="DualConnectionCard" Grid.Row="4" Grid.Column="1" AutomationProperties.AutomationId="DualConnectionCard" IsEnabled="{x:Bind ViewModel.CanUseDualConnection, Mode=OneWay}" MinHeight="116">
                                     <ToggleSwitch
                                         x:Uid="FeatureToggle"
                                         AutomationProperties.AutomationId="DualConnectionToggle"
@@ -436,7 +435,7 @@
                                         Toggled="OnDualConnectionToggled" />
                                 </controls:SettingsCard>
 
-                                <controls:SettingsCard x:Name="FindEarbudsCard" x:Uid="FindEarbudsCard" Grid.Row="5" AutomationProperties.AutomationId="FindEarbudsCard" ContentAlignment="Left" IsEnabled="{x:Bind ViewModel.CanUseFindEarbuds, Mode=OneWay}" MinHeight="116">
+                                <controls:SettingsCard x:Name="FindEarbudsCard" x:Uid="FindEarbudsCard" Grid.Row="5" AutomationProperties.AutomationId="FindEarbudsCard" IsEnabled="{x:Bind ViewModel.CanUseFindEarbuds, Mode=OneWay}" MinHeight="116">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <Button x:Uid="FindLeft" AutomationProperties.AutomationId="XtFindLeft" Tag="Left" Click="OnXt2443FindClick" />
                                         <Button x:Uid="FindRight" AutomationProperties.AutomationId="XtFindRight" Tag="Right" Click="OnXt2443FindClick" />
@@ -444,14 +443,14 @@
                                     </StackPanel>
                                 </controls:SettingsCard>
 
-                                <controls:SettingsCard x:Name="FitTestCard" x:Uid="FitTestCard" Grid.Row="5" Grid.Column="1" AutomationProperties.AutomationId="FitTestCard" ContentAlignment="Left" IsEnabled="{x:Bind ViewModel.CanUseFitTest, Mode=OneWay}" MinHeight="116">
+                                <controls:SettingsCard x:Name="FitTestCard" x:Uid="FitTestCard" Grid.Row="5" Grid.Column="1" AutomationProperties.AutomationId="FitTestCard" IsEnabled="{x:Bind ViewModel.CanUseFitTest, Mode=OneWay}" MinHeight="116">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <Button x:Uid="FitTestStart" AutomationProperties.AutomationId="FitTestStart" Tag="True" Click="OnFitTestClick" />
                                         <Button x:Uid="FitTestStop" AutomationProperties.AutomationId="FitTestStop" Tag="False" Click="OnFitTestClick" />
                                     </StackPanel>
                                 </controls:SettingsCard>
 
-                                <controls:SettingsCard x:Name="RefreshStateCard" x:Uid="RefreshStateCard" Grid.Row="6" Grid.ColumnSpan="2" AutomationProperties.AutomationId="RefreshStateCard" ContentAlignment="Left" MinHeight="116">
+                                <controls:SettingsCard x:Name="RefreshStateCard" x:Uid="RefreshStateCard" Grid.Row="6" Grid.ColumnSpan="2" AutomationProperties.AutomationId="RefreshStateCard" MinHeight="116">
                                     <Button
                                         x:Uid="RefreshStateButton"
                                         AutomationProperties.AutomationId="RefreshStateButton"

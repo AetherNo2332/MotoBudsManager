@@ -149,6 +149,15 @@ Test-UI 'Maximized controls remain scrollable without horizontal clipping' {
     if (($maximizedWindowRect.Right - $disconnectRight) -gt 80) {
         throw "Control content did not fill the maximized page: right margin=$($maximizedWindowRect.Right - $disconnectRight)."
     }
+    $headerMatches = winapp ui search '主动降噪' -w $mainHwnd --json 2>$null | ConvertFrom-Json
+    $visibleHeader = @($headerMatches.matches | Where-Object { $_.type -eq 'Text' -and $_.isOffscreen -eq $false })
+    if ($visibleHeader.Count -eq 0) {
+        $headerMatches = winapp ui search 'Noise control' -w $mainHwnd --json 2>$null | ConvertFrom-Json
+        $visibleHeader = @($headerMatches.matches | Where-Object { $_.type -eq 'Text' -and $_.isOffscreen -eq $false })
+    }
+    if ($visibleHeader.Count -eq 0) {
+        throw 'The noise-control card header disappeared in the wide layout.'
+    }
     winapp ui scroll 'DeviceControlScroll' -w $mainHwnd --to bottom
     if ($LASTEXITCODE -ne 0) { throw 'Maximized control page could not scroll to the final row.' }
     winapp ui wait-for 'RefreshStateButton' -w $mainHwnd -p IsOffscreen --value 'False' -t 5000
