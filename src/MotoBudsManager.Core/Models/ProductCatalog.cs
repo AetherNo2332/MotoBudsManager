@@ -18,6 +18,8 @@ public static class ProductCatalog
             ["XT2643-1"] = 2,
         };
 
+    public static bool IsKnownModel(string modelId) => MaximumKnownColor.ContainsKey(modelId);
+
     public static ProductPresentation Get(string modelId, byte colorId)
     {
         var known = MaximumKnownColor.TryGetValue(modelId, out var maximumColor) && colorId <= maximumColor;

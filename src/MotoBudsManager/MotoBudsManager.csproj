@@ -28,8 +28,8 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-lightunplated.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-48_altform-lightunplated.png" />
     <Content Include="Assets\StoreLogo.png" />
-    <Content Include="Assets\AppIcon.ico" />
-    <Content Include="Assets\AppIconTitleBar.png" />
+    <Content Include="Assets\AppIcon.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Assets\AppIconTitleBar.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <!-- Product images are loaded dynamically with ms-appx:/// URIs, so keep the
          original files beside the executable for both local runs and MSIX packaging. -->

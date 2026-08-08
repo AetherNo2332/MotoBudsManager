@@ -26,11 +26,16 @@ public sealed partial class MainPage : Page
         AboutVersionText.Text = App.AppVersionText;
         AppNavigation.SelectedItem = NavHome;
         ViewModel.DeviceCards.CollectionChanged += (_, _) => RebuildDeviceNavigation();
+        ViewModel.ConnectionLost += (_, _) => AppNavigation.SelectedItem = NavHome;
         ViewModel.PropertyChanged += (_, args) =>
         {
             if (args.PropertyName == nameof(ViewModel.AncMode))
             {
                 UpdateAncSelection();
+            }
+            else if (args.PropertyName == nameof(ViewModel.SpatialAudioMode))
+            {
+                UpdateSpatialSelection();
             }
         };
     }
@@ -61,13 +66,6 @@ public sealed partial class MainPage : Page
         var selectedTag = args.SelectedItemContainer?.Tag;
         if (selectedTag is MotoBudsDevice device)
         {
-            if (!device.IsXt2443ControlTarget)
-            {
-                AppNavigation.SelectedItem = NavHome;
-                await OpenUntestedDeviceAsync(device);
-                return;
-            }
-
             if (!await ViewModel.ConnectToDeviceAsync(device))
             {
                 AppNavigation.SelectedItem = NavHome;
@@ -75,6 +73,7 @@ public sealed partial class MainPage : Page
             }
 
             selectedTag = "Devices";
+            ResetDeviceControlScroll();
         }
 
         if (selectedTag is not string tag)
@@ -113,48 +112,18 @@ public sealed partial class MainPage : Page
             return;
         }
 
-        if (!selectedDevice.IsXt2443ControlTarget)
-        {
-            await OpenUntestedDeviceAsync(selectedDevice);
-            return;
-        }
-
         if (!await ViewModel.ConnectToDeviceAsync(selectedDevice))
         {
             return;
         }
 
         ViewModel.SelectedDevice = selectedDevice;
+        ResetDeviceControlScroll();
         var deviceItem = NavDevices.MenuItems
             .OfType<NavigationViewItem>()
             .FirstOrDefault(item => item.Tag is MotoBudsDevice device &&
                                     device.BluetoothAddress == selectedDevice.BluetoothAddress);
         AppNavigation.SelectedItem = deviceItem ?? NavDevices;
-    }
-
-    private async Task OpenUntestedDeviceAsync(MotoBudsDevice device)
-    {
-        var product = ProductCatalog.Get(device.ModelId, device.ColorId);
-        var dialog = new ContentDialog
-        {
-            XamlRoot = XamlRoot,
-            Title = LocalizationService.Get("UntestedDeviceTitle"),
-            Content = string.Format(LocalizationService.Get("UntestedDeviceBody"), product.ProductName, device.ModelId),
-            PrimaryButtonText = LocalizationService.Get("LabConsentAccept"),
-            CloseButtonText = LocalizationService.Get("Cancel"),
-            DefaultButton = ContentDialogButton.Close,
-        };
-        AutomationProperties.SetAutomationId(dialog, "UntestedDeviceDialog");
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
-        {
-            return;
-        }
-
-        _labAcknowledged = true;
-        ViewModel.SelectedDevice = device;
-        await ViewModel.ConnectToDeviceAsync(device);
-        AppNavigation.SelectedItem = NavSettings;
-        ShowSettingsSection(LabPage);
     }
 
     private async void OnOpenSettingsLabClick(object sender, RoutedEventArgs e)
@@ -221,7 +190,7 @@ public sealed partial class MainPage : Page
 
     private async void OnAncSelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
     {
-        if (_updatingAnc || !ViewModel.IsStableAncAvailable || sender.SelectedItem is null)
+        if (_updatingAnc || !ViewModel.CanUseAnc || sender.SelectedItem is null)
         {
             return;
         }
@@ -245,6 +214,30 @@ public sealed partial class MainPage : Page
         }
 
         await ViewModel.SetXt2443ToggleAsync(feature, toggle.IsOn);
+    }
+
+    private async void OnFeatureToggleToggled(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.IsBusy || sender is not ToggleSwitch { Tag: string tag } toggle ||
+            !Enum.TryParse<ExperimentalFeature>(tag, out var feature))
+        {
+            return;
+        }
+
+        await ViewModel.SetFeatureAsync(feature, toggle.IsOn ? 1 : 0);
+    }
+
+    private async void OnSpatialSelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    {
+        if (_updatingAnc || !ViewModel.CanUseSpatialAudio || sender.SelectedItem is null)
+        {
+            return;
+        }
+
+        var mode = sender.SelectedItem == SpatialOnItem
+            ? 1
+            : sender.SelectedItem == SpatialTrackingItem ? 2 : 0;
+        await ViewModel.SetFeatureAsync(ExperimentalFeature.SpatialAudio, mode);
     }
 
     private async void OnDualConnectionToggled(object sender, RoutedEventArgs e)
@@ -364,6 +357,23 @@ public sealed partial class MainPage : Page
             0 => AncOffItem,
             1 => AncOnItem,
             2 => AncTransparencyItem,
+            _ => null,
+        };
+        _updatingAnc = false;
+    }
+
+    private void ResetDeviceControlScroll() =>
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+            DeviceControlScrollViewer.ChangeView(0, 0, null, true));
+
+    private void UpdateSpatialSelection()
+    {
+        _updatingAnc = true;
+        SpatialSelector.SelectedItem = ViewModel.SpatialAudioMode switch
+        {
+            0 => SpatialOffItem,
+            1 => SpatialOnItem,
+            2 => SpatialTrackingItem,
             _ => null,
         };
         _updatingAnc = false;

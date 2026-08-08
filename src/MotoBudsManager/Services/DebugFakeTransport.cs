@@ -11,6 +11,9 @@ internal sealed class DebugFakeTransport(DiagnosticLogService log) : IMotoBudsTr
     private bool _adaptiveHearing = true;
     private bool _hiRes = true;
     private bool _gamingMode;
+    private byte _spatialAudio;
+    private bool _automaticVolume;
+    private bool _bassBoost = true;
     private bool _volumeBoost;
     private bool _inEarDetection = true;
     private bool _dualConnection;
@@ -38,9 +41,17 @@ internal sealed class DebugFakeTransport(DiagnosticLogService log) : IMotoBudsTr
             0x0005 => [0x94, 0x93, 0x36],
             0x0200 => [_anc.Mode, _anc.Subtype],
             0x0202 => [(byte)(_adaptiveHearing ? 1 : 0), 0x01],
+            0x030A => _spatialAudio switch
+            {
+                0 => [0x00, 0x00],
+                1 => [0x01, 0x00],
+                _ => [0x01, 0x01],
+            },
             0x030C => [(byte)(_hiRes ? 1 : 0)],
             0x030E => [(byte)(_gamingMode ? 1 : 0)],
             0x0313 => [(byte)(_volumeBoost ? 1 : 0)],
+            0x0316 => [(byte)(_automaticVolume ? 1 : 0)],
+            0x031C => [(byte)(_bassBoost ? 1 : 0)],
             0x0402 => [(byte)(_inEarDetection ? 1 : 0)],
             0x0406 => [0x01, (byte)(_dualConnection ? 1 : 0)],
             _ => [],
@@ -57,11 +68,20 @@ internal sealed class DebugFakeTransport(DiagnosticLogService log) : IMotoBudsTr
             case 0x030D when request.Payload.Length >= 1:
                 _hiRes = request.Payload[0] != 0;
                 break;
+            case 0x030B when request.Payload.Length >= 2:
+                _spatialAudio = request.Payload[0] == 0 ? (byte)0 : request.Payload[1] == 0 ? (byte)1 : (byte)2;
+                break;
             case 0x030F when request.Payload.Length >= 1:
                 _gamingMode = request.Payload[0] != 0;
                 break;
             case 0x0314 when request.Payload.Length >= 1:
                 _volumeBoost = request.Payload[0] != 0;
+                break;
+            case 0x0317 when request.Payload.Length >= 1:
+                _automaticVolume = request.Payload[0] != 0;
+                break;
+            case 0x031D when request.Payload.Length >= 1:
+                _bassBoost = request.Payload[0] != 0;
                 break;
             case 0x0403 when request.Payload.Length >= 1:
                 _inEarDetection = request.Payload[0] != 0;

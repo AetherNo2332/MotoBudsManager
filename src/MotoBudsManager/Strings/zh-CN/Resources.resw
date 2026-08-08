@@ -21,8 +21,8 @@
   <data name="DevicesTitle.Text" xml:space="preserve"><value>已配对的 Moto Buds</value></data>
   <data name="DevicesSubtitle.Text" xml:space="preserve"><value>这里只列出已在 Windows 中完成配对的设备。</value></data>
   <data name="RefreshButton.Content" xml:space="preserve"><value>刷新</value></data>
-  <data name="NoDevicesTitle.Text" xml:space="preserve"><value>未找到已配对耳机</value></data>
-  <data name="NoDevicesBody.Text" xml:space="preserve"><value>请先在 Windows 蓝牙设置中配对耳机，然后刷新此页面。</value></data>
+  <data name="NoDevicesTitle.Text" xml:space="preserve"><value>找不到兼容设备</value></data>
+  <data name="NoDevicesBody.Text" xml:space="preserve"><value>请确认兼容的 Moto Buds 已在 Windows 中配对并处于连接范围内，然后刷新。</value></data>
   <data name="OpenBluetoothButton.Content" xml:space="preserve"><value>打开蓝牙设置</value></data>
   <data name="DeviceOverview.Header" xml:space="preserve"><value>设备概览</value></data>
   <data name="DeviceOverview.Description" xml:space="preserve"><value>型号和传输方式由已配对的蓝牙服务推导。</value></data>
@@ -83,14 +83,16 @@
   <data name="StatusScanningMessage" xml:space="preserve"><value>正在读取 RFCOMM 和 GATT 服务。</value></data>
   <data name="StatusDevicesFound" xml:space="preserve"><value>已找到设备</value></data>
   <data name="StatusDevicesFoundMessage" xml:space="preserve"><value>找到 {0} 个兼容的已配对设备。</value></data>
-  <data name="StatusNoDevices" xml:space="preserve"><value>未找到设备</value></data>
-  <data name="StatusNoDevicesMessage" xml:space="preserve"><value>请在 Windows 蓝牙设置中配对 Moto Buds 后刷新。</value></data>
+  <data name="StatusNoDevices" xml:space="preserve"><value>找不到兼容设备</value></data>
+  <data name="StatusNoDevicesMessage" xml:space="preserve"><value>请确认兼容的 Moto Buds 已配对、蓝牙已开启且耳机位于连接范围内。</value></data>
   <data name="StatusScanFailed" xml:space="preserve"><value>设备发现失败</value></data>
   <data name="StatusConnecting" xml:space="preserve"><value>正在连接</value></data>
   <data name="StatusConnected" xml:space="preserve"><value>已连接</value></data>
   <data name="StatusConnectionFailed" xml:space="preserve"><value>连接失败</value></data>
   <data name="StatusDisconnected" xml:space="preserve"><value>已断开</value></data>
   <data name="StatusDisconnectedMessage" xml:space="preserve"><value>蓝牙会话已关闭。</value></data>
+  <data name="StatusConnectionLost" xml:space="preserve"><value>连接已中断</value></data>
+  <data name="StatusConnectionLostMessage" xml:space="preserve"><value>耳机已与 Windows 断开。请确认蓝牙连接后重试。</value></data>
   <data name="StatusAncVerified" xml:space="preserve"><value>ANC 状态已验证</value></data>
   <data name="StatusAncFailed" xml:space="preserve"><value>ANC 修改失败</value></data>
   <data name="AncOn" xml:space="preserve"><value>标准主动降噪已开启。</value></data>
@@ -131,8 +133,14 @@
   <data name="AncControlCard.Header" xml:space="preserve"><value>主动降噪</value></data>
   <data name="AncTransparencyItem.Text" xml:space="preserve"><value>通透</value></data>
   <data name="AdaptiveCard.Header" xml:space="preserve"><value>自适应听感</value></data>
+  <data name="SpatialCard.Header" xml:space="preserve"><value>空间音频</value></data>
+  <data name="SpatialOffItem.Text" xml:space="preserve"><value>关闭</value></data>
+  <data name="SpatialOnItem.Text" xml:space="preserve"><value>开启</value></data>
+  <data name="SpatialTrackingItem.Text" xml:space="preserve"><value>头部跟踪</value></data>
   <data name="HiResCard.Header" xml:space="preserve"><value>Hi-Res 音频</value></data>
   <data name="GamingCard.Header" xml:space="preserve"><value>游戏模式</value></data>
+  <data name="AutomaticVolumeCard.Header" xml:space="preserve"><value>自动音量</value></data>
+  <data name="BassBoostCard.Header" xml:space="preserve"><value>低音增强</value></data>
   <data name="VolumeBoostCard.Header" xml:space="preserve"><value>音量增强</value></data>
   <data name="InEarCard.Header" xml:space="preserve"><value>入耳检测</value></data>
   <data name="DualConnectionCard.Header" xml:space="preserve"><value>双设备连接</value></data>
@@ -149,6 +157,10 @@
   <data name="UntestedDeviceTitle" xml:space="preserve"><value>功能尚未经过硬件测试</value></data>
   <data name="UntestedDeviceBody" xml:space="preserve"><value>{0}（{1}）没有经过本应用的硬件验证。继续后将连接设备并打开实验室。</value></data>
   <data name="Xt2443ControlsUnavailable" xml:space="preserve"><value>请连接 XT2443-1 RFCOMM 设备。</value></data>
+  <data name="DeviceControlsUnavailable" xml:space="preserve"><value>请连接支持此功能的兼容设备。</value></data>
+  <data name="StatusReadbackVerified" xml:space="preserve"><value>已通过状态回读确认。</value></data>
+  <data name="StaticAdaptationInfo.Title" xml:space="preserve"><value>静态型号适配</value></data>
+  <data name="StaticAdaptationInfo.Message" xml:space="preserve"><value>此型号显示的控件来自协议分析，尚未在本应用中完成实机测试。</value></data>
   <data name="StatusFeatureUpdated" xml:space="preserve"><value>设置已更新</value></data>
   <data name="StatusFeatureFailed" xml:space="preserve"><value>设置失败</value></data>
   <data name="FeatureOn" xml:space="preserve"><value>已开启并回读确认。</value></data>

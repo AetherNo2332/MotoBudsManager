@@ -91,8 +91,9 @@ public sealed class DeviceDiscoveryService(DiagnosticLogService log, bool isTest
                     }
                 }
 
-                if (!LooksLikeMotoBuds(bluetoothDevice.Name, modelId))
+                if (!IsCompatibleModel(modelId))
                 {
+                    log.Write($"Ignored RFCOMM device {bluetoothDevice.Name}: no supported Moto Buds model UUID was found.");
                     continue;
                 }
 
@@ -161,8 +162,12 @@ public sealed class DeviceDiscoveryService(DiagnosticLogService log, bool isTest
                     }
                 }
 
-                if (!hasControlService || !LooksLikeMotoBuds(bleDevice.Name, modelId))
+                if (!hasControlService || !IsCompatibleModel(modelId))
                 {
+                    if (hasControlService)
+                    {
+                        log.Write($"Ignored GATT device {bleDevice.Name}: no supported Moto Buds model UUID was found.");
+                    }
                     continue;
                 }
 
@@ -226,11 +231,7 @@ public sealed class DeviceDiscoveryService(DiagnosticLogService log, bool isTest
         return reader.ReadByte();
     }
 
-    private static bool LooksLikeMotoBuds(string? name, string modelId) =>
-        !modelId.Equals("Unknown", StringComparison.OrdinalIgnoreCase) ||
-        (!string.IsNullOrWhiteSpace(name) &&
-         (name.Contains("moto", StringComparison.OrdinalIgnoreCase) ||
-          name.Contains("buds", StringComparison.OrdinalIgnoreCase)));
+    private static bool IsCompatibleModel(string modelId) => ProductCatalog.IsKnownModel(modelId);
 
     private static string FormatAddress(ulong address)
     {

@@ -14,6 +14,7 @@ public partial class MainPageViewModel : ObservableObject
     private readonly MotoBudsSessionService session;
     private readonly DiagnosticLogService diagnostics;
     private readonly LowBatteryNotificationService lowBatteryNotifications;
+    private int _connectionGeneration;
 
     public MainPageViewModel(
         DeviceDiscoveryService discovery,
@@ -30,6 +31,8 @@ public partial class MainPageViewModel : ObservableObject
         lowBatteryNotifications.InAppLowBatteryRequested += OnInAppLowBatteryRequested;
     }
 
+    public event EventHandler? ConnectionLost;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanConnect))]
     [NotifyPropertyChangedFor(nameof(DeviceName))]
@@ -42,6 +45,7 @@ public partial class MainPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ProductImageSource))]
     [NotifyPropertyChangedFor(nameof(ProductModelAndColor))]
     [NotifyPropertyChangedFor(nameof(IsXt2443ControlsAvailable))]
+    [NotifyPropertyChangedFor(nameof(IsDeviceControlsAvailable))]
     [NotifyPropertyChangedFor(nameof(IsStableAncAvailable))]
     [NotifyPropertyChangedFor(nameof(CanUseAnc))]
     [NotifyPropertyChangedFor(nameof(CanUseSpatialAudio))]
@@ -52,6 +56,10 @@ public partial class MainPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanUseVolumeBoost))]
     [NotifyPropertyChangedFor(nameof(CanUseInEarDetection))]
     [NotifyPropertyChangedFor(nameof(CanUseFindEarbuds))]
+    [NotifyPropertyChangedFor(nameof(CanUseAdaptiveHearing))]
+    [NotifyPropertyChangedFor(nameof(CanUseFitTest))]
+    [NotifyPropertyChangedFor(nameof(CanUseDualConnection))]
+    [NotifyPropertyChangedFor(nameof(IsStaticAdaptation))]
     public partial MotoBudsDevice? SelectedDevice { get; set; }
 
     [ObservableProperty]
@@ -59,6 +67,7 @@ public partial class MainPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanDisconnect))]
     [NotifyPropertyChangedFor(nameof(ConnectionStatusText))]
     [NotifyPropertyChangedFor(nameof(IsXt2443ControlsAvailable))]
+    [NotifyPropertyChangedFor(nameof(IsDeviceControlsAvailable))]
     [NotifyPropertyChangedFor(nameof(IsStableAncAvailable))]
     [NotifyPropertyChangedFor(nameof(CanUseAnc))]
     [NotifyPropertyChangedFor(nameof(CanUseSpatialAudio))]
@@ -69,12 +78,21 @@ public partial class MainPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanUseVolumeBoost))]
     [NotifyPropertyChangedFor(nameof(CanUseInEarDetection))]
     [NotifyPropertyChangedFor(nameof(CanUseFindEarbuds))]
+    [NotifyPropertyChangedFor(nameof(CanUseAdaptiveHearing))]
+    [NotifyPropertyChangedFor(nameof(CanUseFitTest))]
+    [NotifyPropertyChangedFor(nameof(CanUseDualConnection))]
+    [NotifyPropertyChangedFor(nameof(IsStaticAdaptation))]
     public partial bool IsConnected { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ConnectionStatusText))]
+    public partial bool IsConnecting { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanConnect))]
     [NotifyPropertyChangedFor(nameof(CanDisconnect))]
     [NotifyPropertyChangedFor(nameof(IsXt2443ControlsAvailable))]
+    [NotifyPropertyChangedFor(nameof(IsDeviceControlsAvailable))]
     public partial bool IsBusy { get; set; }
 
     [ObservableProperty]
@@ -103,6 +121,15 @@ public partial class MainPageViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool GamingModeEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial int SpatialAudioMode { get; set; } = -1;
+
+    [ObservableProperty]
+    public partial bool AutomaticVolumeEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool BassBoostEnabled { get; set; }
 
     [ObservableProperty]
     public partial bool VolumeBoostEnabled { get; set; }
@@ -187,9 +214,11 @@ public partial class MainPageViewModel : ObservableObject
         ? "—"
         : $"{SelectedDevice.ModelId}  ·  {ProductCatalog.Get(SelectedDevice.ModelId, SelectedDevice.ColorId).ColorName}";
 
-    public string ConnectionStatusText => IsConnected
-        ? LocalizationService.Get("StatusConnected")
-        : LocalizationService.Get("StatusDisconnected");
+    public string ConnectionStatusText => IsConnecting
+        ? LocalizationService.Get("StatusConnecting")
+        : IsConnected
+            ? LocalizationService.Get("StatusConnected")
+            : LocalizationService.Get("StatusDisconnected");
 
     public string BatterySummaryText => string.Format(
         LocalizationService.Get("BatterySummaryFormat"),
@@ -204,6 +233,12 @@ public partial class MainPageViewModel : ObservableObject
     public bool IsXt2443ControlsAvailable =>
         IsConnected && !IsBusy && SelectedDevice?.IsXt2443ControlTarget == true;
 
+    public bool IsDeviceControlsAvailable =>
+        IsConnected && !IsBusy && SelectedDevice is not null && ProductCatalog.IsKnownModel(SelectedDevice.ModelId);
+
+    public bool IsStaticAdaptation =>
+        IsConnected && SelectedDevice is not null && !SelectedDevice.IsXt2443ControlTarget;
+
     public bool CanUseAnc => CanUse(ExperimentalFeature.Anc);
     public bool CanUseSpatialAudio => CanUse(ExperimentalFeature.SpatialAudio);
     public bool CanUseHiRes => CanUse(ExperimentalFeature.HiRes);
@@ -213,6 +248,9 @@ public partial class MainPageViewModel : ObservableObject
     public bool CanUseVolumeBoost => CanUse(ExperimentalFeature.VolumeBoost);
     public bool CanUseInEarDetection => CanUse(ExperimentalFeature.InEarDetection);
     public bool CanUseFindEarbuds => CanUse(ExperimentalFeature.FindEarbuds);
+    public bool CanUseAdaptiveHearing => CanUse(ExperimentalFeature.AdaptiveHearing);
+    public bool CanUseFitTest => CanUse(ExperimentalFeature.FitTest);
+    public bool CanUseDualConnection => CanUse(ExperimentalFeature.DualConnection);
 
     [RelayCommand]
     private async Task RefreshAsync()
@@ -233,6 +271,8 @@ public partial class MainPageViewModel : ObservableObject
 
             OnPropertyChanged(nameof(HasDevices));
             SelectedDevice = Devices.FirstOrDefault();
+            // Keep discovery passive for statically adapted models. Their private battery
+            // state is queried only after the user explicitly opens a device session.
             foreach (var card in DeviceCards.Where(card => card.Device.IsXt2443ControlTarget))
             {
                 await RefreshHomeBatteryAsync(card);
@@ -257,35 +297,55 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     private async Task ConnectAsync()
     {
-        if (SelectedDevice is null)
+        if (SelectedDevice is not { } device)
         {
             return;
         }
 
+        var generation = Interlocked.Increment(ref _connectionGeneration);
         IsBusy = true;
-        ShowStatus(LocalizationService.Get("StatusConnecting"), SelectedDevice.Name);
+        IsConnecting = true;
+        IsConnected = false;
+        ShowStatus(LocalizationService.Get("StatusConnecting"), device.Name);
         try
         {
-            await session.ConnectAsync(SelectedDevice);
-            IsConnected = true;
-            ResetXt2443State();
-            if (SelectedDevice.IsXt2443ControlTarget && session.Client is not null)
+            await session.ConnectAsync(device);
+            if (!IsCurrentConnection(generation, device))
             {
-                await LoadXt2443StateAsync(session.Client);
+                return;
             }
 
-            ShowStatus(LocalizationService.Get("StatusConnected"), SelectedDevice.Name);
+            IsConnected = true;
+            IsConnecting = false;
+            ResetDeviceState();
+            if (session.Client is not null)
+            {
+                await LoadDeviceStateAsync(session.Client);
+            }
+
+            if (IsCurrentConnection(generation, device))
+            {
+                ShowStatus(LocalizationService.Get("StatusConnected"), device.Name);
+            }
         }
         catch (Exception exception)
         {
             await session.DisconnectAsync();
-            IsConnected = false;
-            ShowError(LocalizationService.Get("StatusConnectionFailed"), exception.Message);
+            if (generation == Volatile.Read(ref _connectionGeneration))
+            {
+                IsConnecting = false;
+                IsConnected = false;
+                ShowError(LocalizationService.Get("StatusConnectionFailed"), exception.Message);
+            }
             diagnostics.Write($"Connection failed: {exception}");
         }
         finally
         {
-            IsBusy = false;
+            if (generation == Volatile.Read(ref _connectionGeneration))
+            {
+                IsConnecting = false;
+                IsBusy = false;
+            }
         }
     }
 
@@ -313,12 +373,14 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     private async Task DisconnectAsync()
     {
+        Interlocked.Increment(ref _connectionGeneration);
         IsBusy = true;
+        IsConnecting = false;
         try
         {
             await session.DisconnectAsync();
             IsConnected = false;
-            ResetXt2443State();
+            ResetDeviceState();
             ShowStatus(LocalizationService.Get("StatusDisconnected"), LocalizationService.Get("StatusDisconnectedMessage"));
         }
         finally
@@ -332,9 +394,9 @@ public partial class MainPageViewModel : ObservableObject
         await Launcher.LaunchUriAsync(new Uri("ms-settings:bluetooth"));
 
     [RelayCommand]
-    private async Task RefreshXt2443StateAsync()
+    private async Task RefreshDeviceStateAsync()
     {
-        if (session.Client is null || SelectedDevice?.IsXt2443ControlTarget != true)
+        if (session.Client is null || SelectedDevice is null)
         {
             return;
         }
@@ -342,7 +404,7 @@ public partial class MainPageViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            await LoadXt2443StateAsync(session.Client);
+            await LoadDeviceStateAsync(session.Client);
             ShowStatus(LocalizationService.Get("StatusRefreshed"), LocalizationService.Get("StatusRefreshedMessage"));
         }
         finally
@@ -353,7 +415,7 @@ public partial class MainPageViewModel : ObservableObject
 
     public async Task<CommandResult> SetAncAsync(int mode)
     {
-        if (session.Client is null || !IsStableAncAvailable)
+        if (session.Client is null || !CanUseAnc)
         {
             return new(false, false, false, LocalizationService.Get("StableAncUnavailable"));
         }
@@ -388,7 +450,16 @@ public partial class MainPageViewModel : ObservableObject
 
     public async Task<CommandResult> SetXt2443ToggleAsync(Xt2443ToggleFeature feature, bool enabled)
     {
-        if (session.Client is null || !IsStableAncAvailable)
+        var mappedFeature = feature switch
+        {
+            Xt2443ToggleFeature.AdaptiveHearing => ExperimentalFeature.AdaptiveHearing,
+            Xt2443ToggleFeature.HiRes => ExperimentalFeature.HiRes,
+            Xt2443ToggleFeature.GamingMode => ExperimentalFeature.GamingMode,
+            Xt2443ToggleFeature.VolumeBoost => ExperimentalFeature.VolumeBoost,
+            Xt2443ToggleFeature.InEarDetection => ExperimentalFeature.InEarDetection,
+            _ => throw new ArgumentOutOfRangeException(nameof(feature)),
+        };
+        if (session.Client is null || !CanUse(mappedFeature))
         {
             return new(false, false, false, LocalizationService.Get("Xt2443ControlsUnavailable"));
         }
@@ -419,7 +490,7 @@ public partial class MainPageViewModel : ObservableObject
 
     public async Task<CommandResult> SetDualConnectionAsync(bool enabled)
     {
-        if (session.Client is null || !IsStableAncAvailable || !DualConnectionSupported)
+        if (session.Client is null || !CanUseDualConnection || !DualConnectionSupported)
         {
             return new(false, false, false, LocalizationService.Get("Xt2443ControlsUnavailable"));
         }
@@ -450,7 +521,7 @@ public partial class MainPageViewModel : ObservableObject
 
     public async Task<CommandResult> SetRingTargetAsync(EarbudRingTarget target)
     {
-        if (session.Client is null || !IsStableAncAvailable)
+        if (session.Client is null || !CanUseFindEarbuds)
         {
             return new(false, false, null, LocalizationService.Get("Xt2443ControlsUnavailable"));
         }
@@ -485,7 +556,7 @@ public partial class MainPageViewModel : ObservableObject
 
     public async Task<CommandResult> SetFitTestAsync(bool enabled)
     {
-        if (session.Client is null || !IsStableAncAvailable)
+        if (session.Client is null || !CanUseFitTest)
         {
             return new(false, false, null, LocalizationService.Get("Xt2443ControlsUnavailable"));
         }
@@ -540,10 +611,41 @@ public partial class MainPageViewModel : ObservableObject
         }
     }
 
+    public async Task<CommandResult> SetFeatureAsync(ExperimentalFeature feature, int value)
+    {
+        if (session.Client is null || !CanUse(feature))
+        {
+            return new(false, false, false, LocalizationService.Get("DeviceControlsUnavailable"));
+        }
+
+        IsBusy = true;
+        try
+        {
+            var result = await session.Client.SetFeatureAsync(feature, value);
+            if (result.Success)
+            {
+                ApplyFeatureState(feature, value);
+                ShowStatus(LocalizationService.Get("StatusFeatureUpdated"),
+                    LocalizationService.Get("StatusReadbackVerified"));
+            }
+            else
+            {
+                ShowError(LocalizationService.Get("StatusFeatureFailed"),
+                    result.Error ?? LocalizationService.Get("UnknownError"));
+            }
+
+            return result;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
     private bool CanUse(ExperimentalFeature feature) =>
         IsConnected && SelectedDevice is not null && ModelCatalog.Supports(SelectedDevice.ModelId, feature);
 
-    private async Task LoadXt2443StateAsync(MotoBudsClient client)
+    private async Task LoadDeviceStateAsync(MotoBudsClient client)
     {
         await TryLoadAsync("battery", () =>
         {
@@ -554,23 +656,33 @@ public partial class MainPageViewModel : ObservableObject
 
             return Task.CompletedTask;
         });
-        await TryLoadAsync("ANC", async () => AncMode = (await client.GetAncStateAsync()).Mode);
-        await TryLoadAsync("adaptive hearing", async () =>
-            AdaptiveHearingEnabled = await client.GetXt2443ToggleAsync(Xt2443ToggleFeature.AdaptiveHearing));
-        await TryLoadAsync("Hi-Res", async () =>
-            HiResEnabled = await client.GetXt2443ToggleAsync(Xt2443ToggleFeature.HiRes));
-        await TryLoadAsync("gaming mode", async () =>
-            GamingModeEnabled = await client.GetXt2443ToggleAsync(Xt2443ToggleFeature.GamingMode));
-        await TryLoadAsync("volume boost", async () =>
-            VolumeBoostEnabled = await client.GetXt2443ToggleAsync(Xt2443ToggleFeature.VolumeBoost));
-        await TryLoadAsync("in-ear detection", async () =>
-            InEarDetectionEnabled = await client.GetXt2443ToggleAsync(Xt2443ToggleFeature.InEarDetection));
-        await TryLoadAsync("dual connection", async () =>
+        var readableFeatures = new[]
         {
-            var state = await client.GetDualConnectionStateAsync();
-            DualConnectionSupported = state.IsSupported;
-            DualConnectionEnabled = state.IsEnabled;
-        });
+            ExperimentalFeature.Anc,
+            ExperimentalFeature.AdaptiveHearing,
+            ExperimentalFeature.SpatialAudio,
+            ExperimentalFeature.HiRes,
+            ExperimentalFeature.GamingMode,
+            ExperimentalFeature.AutomaticVolume,
+            ExperimentalFeature.BassBoost,
+            ExperimentalFeature.VolumeBoost,
+            ExperimentalFeature.InEarDetection,
+        };
+        foreach (var feature in readableFeatures.Where(feature => CanUse(feature)))
+        {
+            await TryLoadAsync(feature.ToString(), async () =>
+                ApplyFeatureState(feature, await client.GetFeatureStateAsync(feature)));
+        }
+
+        if (CanUseDualConnection)
+        {
+            await TryLoadAsync("dual connection", async () =>
+            {
+                var state = await client.GetDualConnectionStateAsync();
+                DualConnectionSupported = state.IsSupported;
+                DualConnectionEnabled = state.IsEnabled;
+            });
+        }
     }
 
     private async Task TryLoadAsync(string feature, Func<Task> load)
@@ -581,7 +693,7 @@ public partial class MainPageViewModel : ObservableObject
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            diagnostics.Write($"XT2443 {feature} read failed: {exception.Message}");
+            diagnostics.Write($"Device {feature} read failed: {exception.Message}");
         }
     }
 
@@ -667,15 +779,44 @@ public partial class MainPageViewModel : ObservableObject
     private void OnSessionDisconnected(object? sender, SessionDisconnectedEventArgs args)
     {
         _ = lowBatteryNotifications.ResetAsync(args.Device);
+        if (args.Reason != SessionDisconnectReason.TransportLost)
+        {
+            RunOnUiThread(() =>
+            {
+                if (SelectedDevice?.BluetoothAddress == args.Device.BluetoothAddress)
+                {
+                    IsConnecting = false;
+                    IsConnected = false;
+                }
+            });
+            return;
+        }
+
+        Interlocked.Increment(ref _connectionGeneration);
         RunOnUiThread(() =>
         {
             if (SelectedDevice?.BluetoothAddress == args.Device.BluetoothAddress)
             {
+                var wasActive = IsConnecting || IsConnected;
+                IsConnecting = false;
                 IsConnected = false;
-                ResetXt2443State();
+                IsBusy = false;
+                ResetDeviceState();
+                if (wasActive)
+                {
+                    ShowError(
+                        LocalizationService.Get("StatusConnectionLost"),
+                        LocalizationService.Get("StatusConnectionLostMessage"));
+                    ConnectionLost?.Invoke(this, EventArgs.Empty);
+                }
             }
         });
     }
+
+    private bool IsCurrentConnection(int generation, MotoBudsDevice device) =>
+        generation == Volatile.Read(ref _connectionGeneration) &&
+        session.IsConnected &&
+        session.Device?.BluetoothAddress == device.BluetoothAddress;
 
     private void OnInAppLowBatteryRequested(object? sender, InAppLowBatteryRequestedEventArgs args) =>
         RunOnUiThread(() => ShowStatus(
@@ -719,12 +860,49 @@ public partial class MainPageViewModel : ObservableObject
         }
     }
 
-    private void ResetXt2443State()
+    private void ApplyFeatureState(ExperimentalFeature feature, int value)
+    {
+        switch (feature)
+        {
+            case ExperimentalFeature.Anc:
+                AncMode = value;
+                break;
+            case ExperimentalFeature.AdaptiveHearing:
+                AdaptiveHearingEnabled = value != 0;
+                break;
+            case ExperimentalFeature.SpatialAudio:
+                SpatialAudioMode = value;
+                break;
+            case ExperimentalFeature.HiRes:
+                HiResEnabled = value != 0;
+                break;
+            case ExperimentalFeature.GamingMode:
+                GamingModeEnabled = value != 0;
+                break;
+            case ExperimentalFeature.AutomaticVolume:
+                AutomaticVolumeEnabled = value != 0;
+                break;
+            case ExperimentalFeature.BassBoost:
+                BassBoostEnabled = value != 0;
+                break;
+            case ExperimentalFeature.VolumeBoost:
+                VolumeBoostEnabled = value != 0;
+                break;
+            case ExperimentalFeature.InEarDetection:
+                InEarDetectionEnabled = value != 0;
+                break;
+        }
+    }
+
+    private void ResetDeviceState()
     {
         AncMode = -1;
         AdaptiveHearingEnabled = false;
+        SpatialAudioMode = -1;
         HiResEnabled = false;
         GamingModeEnabled = false;
+        AutomaticVolumeEnabled = false;
+        BassBoostEnabled = false;
         VolumeBoostEnabled = false;
         InEarDetectionEnabled = false;
         DualConnectionEnabled = false;
