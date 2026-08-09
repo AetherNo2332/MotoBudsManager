@@ -149,15 +149,8 @@ Test-UI 'Maximized controls remain scrollable without horizontal clipping' {
     if (($maximizedWindowRect.Right - $disconnectRight) -gt 80) {
         throw "Control content did not fill the maximized page: right margin=$($maximizedWindowRect.Right - $disconnectRight)."
     }
-    $headerMatches = winapp ui search '主动降噪' -w $mainHwnd --json 2>$null | ConvertFrom-Json
-    $visibleHeader = @($headerMatches.matches | Where-Object { $_.type -eq 'Text' -and $_.isOffscreen -eq $false })
-    if ($visibleHeader.Count -eq 0) {
-        $headerMatches = winapp ui search 'Noise control' -w $mainHwnd --json 2>$null | ConvertFrom-Json
-        $visibleHeader = @($headerMatches.matches | Where-Object { $_.type -eq 'Text' -and $_.isOffscreen -eq $false })
-    }
-    if ($visibleHeader.Count -eq 0) {
-        throw 'The noise-control card header disappeared in the wide layout.'
-    }
+    winapp ui wait-for 'AncControlCard' -w $mainHwnd -p IsOffscreen --value 'False' -t 5000
+    if ($LASTEXITCODE -ne 0) { throw 'The noise-control card disappeared in the wide layout.' }
     winapp ui scroll 'DeviceControlScroll' -w $mainHwnd --to bottom
     if ($LASTEXITCODE -ne 0) { throw 'Maximized control page could not scroll to the final row.' }
     winapp ui wait-for 'RefreshStateButton' -w $mainHwnd -p IsOffscreen --value 'False' -t 5000
@@ -204,6 +197,21 @@ Test-UI 'Static model opens its device controls instead of the laboratory' {
     if ($LASTEXITCODE -ne 0) { throw 'Whitelisted spatial control was not enabled.' }
     winapp ui wait-for 'VolumeBoostToggle' -w $mainHwnd -p IsEnabled --value 'False' -t 5000
     if ($LASTEXITCODE -ne 0) { throw 'Unsupported volume boost control was not disabled.' }
+    winapp ui wait-for 'SoundByBoseLogo' -w $mainHwnd -p IsOffscreen --value 'False' -t 5000
+    if ($LASTEXITCODE -ne 0) { throw 'Sound by Bose branding was not visible for XT2641-1.' }
+    winapp ui invoke 'OpenFitTestDialogButton' -w $mainHwnd
+    if ($LASTEXITCODE -ne 0) { throw 'Fit-test dialog could not be opened.' }
+    winapp ui wait-for 'FitTestStartButton' -w $mainHwnd -p IsEnabled --value 'True' -t 5000
+    if ($LASTEXITCODE -ne 0) { throw 'Fit-test start action was not available.' }
+    winapp ui invoke 'FitTestStartButton' -w $mainHwnd
+    if ($LASTEXITCODE -ne 0) { throw 'Fit test could not be started.' }
+    Start-Sleep -Milliseconds 1200
+    winapp ui wait-for 'FitTestLeftStatus' -w $mainHwnd -p IsOffscreen --value 'False' -t 5000
+    if ($LASTEXITCODE -ne 0) { throw 'Left fit-test result was not displayed.' }
+    winapp ui wait-for 'FitTestStartButton' -w $mainHwnd -p IsEnabled --value 'True' -t 5000
+    if ($LASTEXITCODE -ne 0) { throw 'Fit-test retry action was not restored after the result.' }
+    winapp ui send-keys 'escape' -w $mainHwnd --via send-input
+    if ($LASTEXITCODE -ne 0) { throw 'Fit-test dialog could not be closed.' }
     winapp ui invoke 'HeaderDisconnectButton' -w $mainHwnd
     if ($LASTEXITCODE -ne 0) { throw 'Static model could not be disconnected.' }
     winapp ui wait-for 'HomeRefreshButton' -w $mainHwnd -t 10000

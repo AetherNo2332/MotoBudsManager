@@ -147,11 +147,32 @@
   <data name="FindEarbudsCard.Header" xml:space="preserve"><value>查找耳机</value></data>
   <data name="FindEarbudsCard.Description" xml:space="preserve"><value>响铃会在 30 秒后自动停止。</value></data>
   <data name="FitTestCard.Header" xml:space="preserve"><value>佩戴测试</value></data>
-  <data name="FitTestCard.Description" xml:space="preserve"><value>启动或停止测试；当前不显示检测结果。</value></data>
+  <data name="FitTestCard.Description" xml:space="preserve"><value>检测左右耳塞的佩戴密封性。</value></data>
   <data name="RefreshStateCard.Header" xml:space="preserve"><value>刷新状态</value></data>
   <data name="RefreshStateButton.Content" xml:space="preserve"><value>重新读取</value></data>
   <data name="FitTestStart.Content" xml:space="preserve"><value>开始</value></data>
   <data name="FitTestStop.Content" xml:space="preserve"><value>停止</value></data>
+  <data name="FitTestDialog.Title" xml:space="preserve"><value>耳塞贴合度检测</value></data>
+  <data name="FitTestDialog.CloseButtonText" xml:space="preserve"><value>完成</value></data>
+  <data name="FitTestDialogIntro.Text" xml:space="preserve"><value>请正确佩戴左右耳塞，并在安静环境中保持不动。检测由耳机固件执行。</value></data>
+  <data name="FitTestLeftLabel.Text" xml:space="preserve"><value>左耳</value></data>
+  <data name="FitTestRightLabel.Text" xml:space="preserve"><value>右耳</value></data>
+  <data name="FitTestStopButton.Content" xml:space="preserve"><value>停止</value></data>
+  <data name="FitTestStartAction" xml:space="preserve"><value>开始检测</value></data>
+  <data name="FitTestRetryAction" xml:space="preserve"><value>重新检测</value></data>
+  <data name="FitTestStatusWaiting" xml:space="preserve"><value>等待检测</value></data>
+  <data name="FitTestStatusPassed" xml:space="preserve"><value>贴合良好</value></data>
+  <data name="FitTestStatusFailed" xml:space="preserve"><value>需要调整</value></data>
+  <data name="FitTestStatusUnknown" xml:space="preserve"><value>结果未知</value></data>
+  <data name="FitTestReadyMessage" xml:space="preserve"><value>准备好后开始检测。</value></data>
+  <data name="FitTestRunningMessage" xml:space="preserve"><value>正在检测，请保持耳塞位置不变…</value></data>
+  <data name="FitTestStoppedMessage" xml:space="preserve"><value>检测已停止，可以重新开始。</value></data>
+  <data name="FitTestStartFailedMessage" xml:space="preserve"><value>无法开始检测，请确认耳机仍处于连接状态后重试。</value></data>
+  <data name="FitTestResultBothPassed" xml:space="preserve"><value>左右耳塞均贴合良好。</value></data>
+  <data name="FitTestResultLeftFailed" xml:space="preserve"><value>请调整左耳塞或尝试其他尺寸的耳塞套。</value></data>
+  <data name="FitTestResultRightFailed" xml:space="preserve"><value>请调整右耳塞或尝试其他尺寸的耳塞套。</value></data>
+  <data name="FitTestResultBothFailed" xml:space="preserve"><value>请调整左右耳塞或尝试其他尺寸的耳塞套。</value></data>
+  <data name="FitTestResultUnknown" xml:space="preserve"><value>耳机返回了无法识别的检测结果，请重试并查看诊断日志。</value></data>
   <data name="FeatureToggle.OnContent" xml:space="preserve"><value>开</value></data>
   <data name="FeatureToggle.OffContent" xml:space="preserve"><value>关</value></data>
   <data name="UntestedDeviceTitle" xml:space="preserve"><value>功能尚未经过硬件测试</value></data>

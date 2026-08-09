@@ -27,6 +27,7 @@ public partial class MainPageViewModel : ObservableObject
         this.diagnostics = diagnostics;
         this.lowBatteryNotifications = lowBatteryNotifications;
         session.BatteryStateChanged += OnBatteryStateChanged;
+        session.FitTestResultChanged += OnFitTestResultChanged;
         session.Disconnected += OnSessionDisconnected;
         lowBatteryNotifications.InAppLowBatteryRequested += OnInAppLowBatteryRequested;
     }
@@ -44,6 +45,7 @@ public partial class MainPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(ProductName))]
     [NotifyPropertyChangedFor(nameof(ProductImageSource))]
     [NotifyPropertyChangedFor(nameof(ProductModelAndColor))]
+    [NotifyPropertyChangedFor(nameof(ShowSoundByBose))]
     [NotifyPropertyChangedFor(nameof(IsXt2443ControlsAvailable))]
     [NotifyPropertyChangedFor(nameof(IsDeviceControlsAvailable))]
     [NotifyPropertyChangedFor(nameof(IsStableAncAvailable))]
@@ -58,6 +60,7 @@ public partial class MainPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanUseFindEarbuds))]
     [NotifyPropertyChangedFor(nameof(CanUseAdaptiveHearing))]
     [NotifyPropertyChangedFor(nameof(CanUseFitTest))]
+    [NotifyPropertyChangedFor(nameof(CanStartFitTest))]
     [NotifyPropertyChangedFor(nameof(CanUseDualConnection))]
     [NotifyPropertyChangedFor(nameof(IsStaticAdaptation))]
     public partial MotoBudsDevice? SelectedDevice { get; set; }
@@ -80,6 +83,7 @@ public partial class MainPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanUseFindEarbuds))]
     [NotifyPropertyChangedFor(nameof(CanUseAdaptiveHearing))]
     [NotifyPropertyChangedFor(nameof(CanUseFitTest))]
+    [NotifyPropertyChangedFor(nameof(CanStartFitTest))]
     [NotifyPropertyChangedFor(nameof(CanUseDualConnection))]
     [NotifyPropertyChangedFor(nameof(IsStaticAdaptation))]
     public partial bool IsConnected { get; set; }
@@ -93,6 +97,7 @@ public partial class MainPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(CanDisconnect))]
     [NotifyPropertyChangedFor(nameof(IsXt2443ControlsAvailable))]
     [NotifyPropertyChangedFor(nameof(IsDeviceControlsAvailable))]
+    [NotifyPropertyChangedFor(nameof(CanStartFitTest))]
     public partial bool IsBusy { get; set; }
 
     [ObservableProperty]
@@ -147,7 +152,25 @@ public partial class MainPageViewModel : ObservableObject
     public partial bool IsFindActive { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanStartFitTest))]
     public partial bool IsFitTestActive { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FitTestActionText))]
+    [NotifyPropertyChangedFor(nameof(LeftFitTestStatusText))]
+    [NotifyPropertyChangedFor(nameof(RightFitTestStatusText))]
+    public partial bool HasFitTestResult { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LeftFitTestStatusText))]
+    public partial FitTestEarStatus LeftFitTestStatus { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RightFitTestStatusText))]
+    public partial FitTestEarStatus RightFitTestStatus { get; set; }
+
+    [ObservableProperty]
+    public partial string FitTestResultMessage { get; set; } = LocalizationService.Get("FitTestReadyMessage");
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BatterySummaryText))]
@@ -214,6 +237,9 @@ public partial class MainPageViewModel : ObservableObject
         ? "—"
         : $"{SelectedDevice.ModelId}  ·  {ProductCatalog.Get(SelectedDevice.ModelId, SelectedDevice.ColorId).ColorName}";
 
+    public bool ShowSoundByBose => SelectedDevice is not null &&
+        ProductCatalog.SupportsSoundByBose(SelectedDevice.ModelId);
+
     public string ConnectionStatusText => IsConnecting
         ? LocalizationService.Get("StatusConnecting")
         : IsConnected
@@ -251,6 +277,12 @@ public partial class MainPageViewModel : ObservableObject
     public bool CanUseAdaptiveHearing => CanUse(ExperimentalFeature.AdaptiveHearing);
     public bool CanUseFitTest => CanUse(ExperimentalFeature.FitTest);
     public bool CanUseDualConnection => CanUse(ExperimentalFeature.DualConnection);
+    public bool CanStartFitTest => CanUseFitTest && !IsBusy && !IsFitTestActive;
+    public string FitTestActionText => LocalizationService.Get(HasFitTestResult
+        ? "FitTestRetryAction"
+        : "FitTestStartAction");
+    public string LeftFitTestStatusText => GetFitTestStatusText(LeftFitTestStatus, HasFitTestResult);
+    public string RightFitTestStatusText => GetFitTestStatusText(RightFitTestStatus, HasFitTestResult);
 
     [RelayCommand]
     private async Task RefreshAsync()
@@ -476,6 +508,10 @@ public partial class MainPageViewModel : ObservableObject
             }
             else
             {
+                if (enabled)
+                {
+                    FitTestResultMessage = LocalizationService.Get("FitTestStartFailedMessage");
+                }
                 ShowError(LocalizationService.Get("StatusFeatureFailed"),
                     result.Error ?? LocalizationService.Get("UnknownError"));
             }
@@ -564,10 +600,22 @@ public partial class MainPageViewModel : ObservableObject
         IsBusy = true;
         try
         {
+            if (enabled)
+            {
+                HasFitTestResult = false;
+                LeftFitTestStatus = FitTestEarStatus.Unknown;
+                RightFitTestStatus = FitTestEarStatus.Unknown;
+                FitTestResultMessage = LocalizationService.Get("FitTestRunningMessage");
+            }
+
             var result = await session.Client.SetFitTestAsync(enabled);
             if (result.Success)
             {
                 IsFitTestActive = enabled;
+                if (!enabled)
+                {
+                    FitTestResultMessage = LocalizationService.Get("FitTestStoppedMessage");
+                }
                 ShowStatus(LocalizationService.Get("FitTestTitle"),
                     LocalizationService.Get(enabled ? "FitTestStarted" : "FitTestStopped"));
             }
@@ -583,6 +631,19 @@ public partial class MainPageViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    public void PrepareFitTest()
+    {
+        if (IsFitTestActive)
+        {
+            return;
+        }
+
+        HasFitTestResult = false;
+        LeftFitTestStatus = FitTestEarStatus.Unknown;
+        RightFitTestStatus = FitTestEarStatus.Unknown;
+        FitTestResultMessage = LocalizationService.Get("FitTestReadyMessage");
     }
 
     public async Task<CommandResult> RunExperimentalAsync(ExperimentalFeature feature, int value)
@@ -776,6 +837,21 @@ public partial class MainPageViewModel : ObservableObject
     private void OnBatteryStateChanged(object? sender, BatteryStateChangedEventArgs args) =>
         RunOnUiThread(() => ApplyBatteryState(args.Device, args.State));
 
+    private void OnFitTestResultChanged(object? sender, FitTestResultChangedEventArgs args) =>
+        RunOnUiThread(() =>
+        {
+            if (SelectedDevice?.BluetoothAddress != args.Device.BluetoothAddress)
+            {
+                return;
+            }
+
+            IsFitTestActive = false;
+            LeftFitTestStatus = args.Result.Left;
+            RightFitTestStatus = args.Result.Right;
+            HasFitTestResult = true;
+            FitTestResultMessage = GetFitTestResultMessage(args.Result);
+        });
+
     private void OnSessionDisconnected(object? sender, SessionDisconnectedEventArgs args)
     {
         _ = lowBatteryNotifications.ResetAsync(args.Device);
@@ -787,6 +863,7 @@ public partial class MainPageViewModel : ObservableObject
                 {
                     IsConnecting = false;
                     IsConnected = false;
+                    ResetDeviceState();
                 }
             });
             return;
@@ -909,6 +986,10 @@ public partial class MainPageViewModel : ObservableObject
         DualConnectionSupported = false;
         IsFindActive = false;
         IsFitTestActive = false;
+        HasFitTestResult = false;
+        LeftFitTestStatus = FitTestEarStatus.Unknown;
+        RightFitTestStatus = FitTestEarStatus.Unknown;
+        FitTestResultMessage = LocalizationService.Get("FitTestReadyMessage");
         LeftBatteryText = "—";
         RightBatteryText = "—";
         CaseBatteryText = "—";
@@ -925,6 +1006,29 @@ public partial class MainPageViewModel : ObservableObject
         }
 
         return $"{state.Percent}%";
+    }
+
+    private static string GetFitTestStatusText(FitTestEarStatus status, bool hasResult) => LocalizationService.Get(status switch
+    {
+        FitTestEarStatus.Passed => "FitTestStatusPassed",
+        FitTestEarStatus.Failed => "FitTestStatusFailed",
+        _ => hasResult ? "FitTestStatusUnknown" : "FitTestStatusWaiting",
+    });
+
+    private static string GetFitTestResultMessage(FitTestResult result)
+    {
+        if (result.Left == FitTestEarStatus.Unknown || result.Right == FitTestEarStatus.Unknown)
+        {
+            return LocalizationService.Get("FitTestResultUnknown");
+        }
+
+        return LocalizationService.Get((result.Left, result.Right) switch
+        {
+            (FitTestEarStatus.Passed, FitTestEarStatus.Passed) => "FitTestResultBothPassed",
+            (FitTestEarStatus.Failed, FitTestEarStatus.Passed) => "FitTestResultLeftFailed",
+            (FitTestEarStatus.Passed, FitTestEarStatus.Failed) => "FitTestResultRightFailed",
+            _ => "FitTestResultBothFailed",
+        });
     }
 
     private static string FormatBatteryStatus(string percent, bool isCharging) =>

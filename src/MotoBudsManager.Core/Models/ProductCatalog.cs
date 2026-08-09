@@ -4,7 +4,8 @@ public sealed record ProductPresentation(
     string ProductName,
     string ColorName,
     string ImageFileName,
-    bool IsKnown);
+    bool IsKnown,
+    bool SoundByBose);
 
 public static class ProductCatalog
 {
@@ -19,6 +20,9 @@ public static class ProductCatalog
         };
 
     public static bool IsKnownModel(string modelId) => MaximumKnownColor.ContainsKey(modelId);
+
+    public static bool SupportsSoundByBose(string modelId) => modelId.ToUpperInvariant() is
+        "XT2441-1" or "XT2545-1" or "XT2641-1";
 
     public static ProductPresentation Get(string modelId, byte colorId)
     {
@@ -47,6 +51,11 @@ public static class ProductCatalog
             ? $"{modelId.ToLowerInvariant()}-color{colorId}.webp"
             : "default-tws.webp";
 
-        return new ProductPresentation(productName, colorName, imageFileName, known);
+        return new ProductPresentation(
+            productName,
+            colorName,
+            imageFileName,
+            known,
+            SupportsSoundByBose(modelId));
     }
 }

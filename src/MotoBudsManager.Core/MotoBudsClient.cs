@@ -62,6 +62,8 @@ public sealed class MotoBudsClient(
 
     public bool HasTransientActions => _ringActive || _fitTestActive;
 
+    public void CompleteFitTest() => _fitTestActive = false;
+
     public async Task<AncState> GetAncStateAsync(CancellationToken cancellationToken = default)
     {
         EnsureFeatureSupported(ExperimentalFeature.Anc);

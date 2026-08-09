@@ -97,6 +97,19 @@ public sealed class ModelCatalogTests
     }
 
     [Theory]
+    [InlineData("XT2441-1", true)]
+    [InlineData("XT2545-1", true)]
+    [InlineData("XT2641-1", true)]
+    [InlineData("XT2443-1", false)]
+    [InlineData("XT2643-1", false)]
+    [InlineData("Unknown", false)]
+    public void ProductCatalog_UsesDocumentedSoundByBoseWhitelist(string model, bool expected)
+    {
+        Assert.Equal(expected, ProductCatalog.SupportsSoundByBose(model));
+        Assert.Equal(expected, ProductCatalog.Get(model, 0).SoundByBose);
+    }
+
+    [Theory]
     [InlineData(0, "00 00")]
     [InlineData(1, "01 00")]
     [InlineData(2, "01 01")]

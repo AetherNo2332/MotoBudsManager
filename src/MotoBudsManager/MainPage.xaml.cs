@@ -15,6 +15,7 @@ public sealed partial class MainPage : Page
     private bool _loaded;
     private bool _updatingAnc;
     private bool _labAcknowledged;
+    private bool _fitTestDialogOpen;
     private CancellationTokenSource? _findAutoStop;
 
     public MainPageViewModel ViewModel { get; } =
@@ -26,7 +27,15 @@ public sealed partial class MainPage : Page
         AboutVersionText.Text = App.AppVersionText;
         AppNavigation.SelectedItem = NavHome;
         ViewModel.DeviceCards.CollectionChanged += (_, _) => RebuildDeviceNavigation();
-        ViewModel.ConnectionLost += (_, _) => AppNavigation.SelectedItem = NavHome;
+        ViewModel.ConnectionLost += (_, _) =>
+        {
+            if (_fitTestDialogOpen)
+            {
+                FitTestDialog.Hide();
+            }
+
+            AppNavigation.SelectedItem = NavHome;
+        };
         ViewModel.PropertyChanged += (_, args) =>
         {
             if (args.PropertyName == nameof(ViewModel.AncMode))
@@ -48,6 +57,13 @@ public sealed partial class MainPage : Page
 
     public static InfoBarSeverity SeverityFromError(bool isError) =>
         isError ? InfoBarSeverity.Error : InfoBarSeverity.Informational;
+
+    public static string FitTestStatusGlyph(FitTestEarStatus status) => status switch
+    {
+        FitTestEarStatus.Passed => "\uE73E",
+        FitTestEarStatus.Failed => "\uE711",
+        _ => "\uE9CE",
+    };
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
@@ -265,14 +281,49 @@ public sealed partial class MainPage : Page
         }
     }
 
-    private async void OnFitTestClick(object sender, RoutedEventArgs e)
+    private async void OnOpenFitTestDialogClick(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: string tag } || !bool.TryParse(tag, out var enabled))
+        if (!ViewModel.CanUseFitTest)
         {
             return;
         }
 
-        await ViewModel.SetFitTestAsync(enabled);
+        ViewModel.PrepareFitTest();
+        FitTestDialog.XamlRoot = XamlRoot;
+        _fitTestDialogOpen = true;
+        try
+        {
+            await FitTestDialog.ShowAsync();
+        }
+        finally
+        {
+            _fitTestDialogOpen = false;
+        }
+    }
+
+    private async void OnFitTestStartClick(object sender, RoutedEventArgs e) =>
+        await ViewModel.SetFitTestAsync(true);
+
+    private async void OnFitTestStopClick(object sender, RoutedEventArgs e) =>
+        await ViewModel.SetFitTestAsync(false);
+
+    private async void OnFitTestDialogClosing(ContentDialog sender, ContentDialogClosingEventArgs args)
+    {
+        if (!ViewModel.IsFitTestActive)
+        {
+            return;
+        }
+
+        var deferral = args.GetDeferral();
+        try
+        {
+            var result = await ViewModel.SetFitTestAsync(false);
+            args.Cancel = !result.Success;
+        }
+        finally
+        {
+            deferral.Complete();
+        }
     }
 
     private async void OnExperimentalButtonClick(object sender, RoutedEventArgs e)

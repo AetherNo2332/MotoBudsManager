@@ -38,6 +38,15 @@ public sealed class SessionDisconnectedEventArgs(
     public SessionDisconnectReason Reason { get; } = reason;
 }
 
+public sealed class FitTestResultChangedEventArgs(
+    MotoBudsDevice device,
+    FitTestResult result) : EventArgs
+{
+    public MotoBudsDevice Device { get; } = device;
+
+    public FitTestResult Result { get; } = result;
+}
+
 public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTestMode = false) : IAsyncDisposable
 {
     private readonly bool _isTestMode = isTestMode;
@@ -48,6 +57,8 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
     private int _disconnectRaised;
 
     public event EventHandler<BatteryStateChangedEventArgs>? BatteryStateChanged;
+
+    public event EventHandler<FitTestResultChangedEventArgs>? FitTestResultChanged;
 
     public event EventHandler<SessionDisconnectedEventArgs>? Disconnected;
 
@@ -234,18 +245,41 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
     private void OnMessageReceived(object? sender, PduReceivedEventArgs args)
     {
         var device = Device;
-        if (device is null || args.Message.Opcode != BatteryProtocol.BatteryLevelChangedOpcode)
+        if (device is null)
         {
             return;
         }
 
-        if (!BatteryProtocol.TryDecode(args.Message.Payload, out var state))
+        if (args.Message.Opcode == BatteryProtocol.BatteryLevelChangedOpcode)
         {
-            log.Write($"Rejected malformed battery notification for {device.ModelId}.");
+            if (!BatteryProtocol.TryDecode(args.Message.Payload, out var state))
+            {
+                log.Write($"Rejected malformed battery notification for {device.ModelId}.");
+                return;
+            }
+
+            UpdateBattery(device, state, BatteryUpdateSource.FirmwareNotification);
             return;
         }
 
-        UpdateBattery(device, state, BatteryUpdateSource.FirmwareNotification);
+        if (args.Message.Opcode != FitTestProtocol.StatusChangedOpcode)
+        {
+            return;
+        }
+
+        if (!FitTestProtocol.TryDecode(args.Message.Payload, out var result))
+        {
+            log.Write($"Rejected malformed fit-test notification for {device.ModelId}: payload length={args.Message.Payload.Length}.");
+            return;
+        }
+
+        Client?.CompleteFitTest();
+        if (result.Left == FitTestEarStatus.Unknown || result.Right == FitTestEarStatus.Unknown)
+        {
+            log.Write($"Fit-test notification contained an unknown result for {device.ModelId}: left=0x{result.RawLeft:X2}, right=0x{result.RawRight:X2}.");
+        }
+
+        FitTestResultChanged?.Invoke(this, new(device, result));
     }
 
     private void UpdateBattery(

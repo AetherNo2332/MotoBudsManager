@@ -1,4 +1,5 @@
 #if DEBUG
+using MotoBudsManager.Core;
 using MotoBudsManager.Core.Models;
 using MotoBudsManager.Core.Protocol;
 using MotoBudsManager.Core.Transport;
@@ -97,7 +98,31 @@ internal sealed class DebugFakeTransport(DiagnosticLogService log) : IMotoBudsTr
         var response = new PduMessage(request.Opcode, PduType.ResponseNoAck, result, request.Sequence, payload);
         PduReceived?.Invoke(this, new(response));
         log.Write($"DEBUG fake response opcode=0x{request.Opcode:X4} sequence={request.Sequence}.");
+
+        if (request.Opcode == 0x0400 && request.Payload is [0x01])
+        {
+            _ = EmitFitTestResultAsync(request.Sequence);
+        }
+
         return Task.CompletedTask;
+    }
+
+    private async Task EmitFitTestResultAsync(ushort sequence)
+    {
+        await Task.Delay(750).ConfigureAwait(false);
+        if (!IsConnected)
+        {
+            return;
+        }
+
+        var notification = new PduMessage(
+            FitTestProtocol.StatusChangedOpcode,
+            PduType.NotificationNoAck,
+            0,
+            sequence,
+            [0x01, 0x01]);
+        PduReceived?.Invoke(this, new(notification));
+        log.Write("DEBUG fake fit-test result emitted: left=pass, right=pass.");
     }
 
     public Task DisconnectAsync()

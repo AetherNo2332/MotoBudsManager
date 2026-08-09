@@ -255,6 +255,9 @@ public sealed class RequestDispatcherTests
         Assert.False(client.HasTransientActions);
         Assert.True((await client.SetFitTestAsync(true)).Success);
         Assert.True(client.HasTransientActions);
+        client.CompleteFitTest();
+        Assert.False(client.HasTransientActions);
+        Assert.True((await client.SetFitTestAsync(true)).Success);
         Assert.True((await client.SetFitTestAsync(false)).Success);
         Assert.False(client.HasTransientActions);
 
@@ -262,7 +265,8 @@ public sealed class RequestDispatcherTests
         Assert.Equal(new byte[] { 0x00, 0x01 }, requests[1].Payload);
         Assert.Equal(new byte[] { 0x00, 0x00 }, requests[2].Payload);
         Assert.Equal(new byte[] { 0x01 }, requests[3].Payload);
-        Assert.Equal(new byte[] { 0x00 }, requests[4].Payload);
+        Assert.Equal(new byte[] { 0x01 }, requests[4].Payload);
+        Assert.Equal(new byte[] { 0x00 }, requests[5].Payload);
     }
 
     [Theory]
