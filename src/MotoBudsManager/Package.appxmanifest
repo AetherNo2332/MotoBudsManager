@@ -6,12 +6,13 @@
   xmlns:m2="http://schemas.microsoft.com/appx/2013/manifest"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  IgnorableNamespaces="uap m2 rescap">
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  IgnorableNamespaces="uap m2 rescap desktop">
 
   <Identity
     Name="E16B81D3-E5E8-4927-BAFC-4DDFA42DCA08"
     Publisher="CN=MotoBudsManager.Development"
-    Version="1.6.0.0" />
+    Version="1.7.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="E16B81D3-E5E8-4927-BAFC-4DDFA42DCA08" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -43,6 +44,11 @@
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
+      <Extensions>
+        <desktop:Extension Category="windows.startupTask" Executable="MotoBudsManager.exe" EntryPoint="Windows.FullTrustApplication">
+          <desktop:StartupTask TaskId="MotoBudsManagerStartup" Enabled="false" DisplayName="Moto Buds Manager" />
+        </desktop:Extension>
+      </Extensions>
     </Application>
   </Applications>
 

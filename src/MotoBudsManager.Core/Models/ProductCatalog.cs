@@ -1,5 +1,12 @@
 namespace MotoBudsManager.Core.Models;
 
+public enum BoseLogoDisplayMode
+{
+    Off,
+    ByModel,
+    Always,
+}
+
 public sealed record ProductPresentation(
     string ProductName,
     string ColorName,
@@ -23,6 +30,16 @@ public static class ProductCatalog
 
     public static bool SupportsSoundByBose(string modelId) => modelId.ToUpperInvariant() is
         "XT2441-1" or "XT2545-1" or "XT2641-1";
+
+    public static bool ShouldShowSoundByBose(
+        string? modelId,
+        BoseLogoDisplayMode displayMode) =>
+        !string.IsNullOrWhiteSpace(modelId) && displayMode switch
+        {
+            BoseLogoDisplayMode.Off => false,
+            BoseLogoDisplayMode.Always => true,
+            _ => SupportsSoundByBose(modelId),
+        };
 
     public static ProductPresentation Get(string modelId, byte colorId)
     {

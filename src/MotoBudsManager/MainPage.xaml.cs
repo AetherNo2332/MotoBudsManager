@@ -12,6 +12,7 @@ namespace MotoBudsManager;
 
 public sealed partial class MainPage : Page
 {
+    private const string BoseLogoDisplayModeSettingKey = "BoseLogoDisplayMode";
     private bool _loaded;
     private bool _updatingAnc;
     private bool _labAcknowledged;
@@ -74,6 +75,8 @@ public sealed partial class MainPage : Page
 
         _loaded = true;
         ApplySavedTheme();
+        ApplySavedBoseLogoDisplayMode();
+        await ViewModel.Startup.RefreshAsync();
         await ViewModel.RefreshCommand.ExecuteAsync(null);
     }
 
@@ -103,6 +106,15 @@ public sealed partial class MainPage : Page
         LabPage.Visibility = Visibility.Collapsed;
         DiagnosticsPage.Visibility = Visibility.Collapsed;
 
+        if (tag == "Settings")
+        {
+            await ViewModel.Startup.RefreshAsync();
+        }
+        else if (tag == "Devices" && args.SelectedItemContainer == NavDevices && ViewModel.IsConnected && !ViewModel.IsBusy)
+        {
+            await ViewModel.RefreshDeviceStateCommand.ExecuteAsync(null);
+        }
+
         if (tag == "Home" && ViewModel.DeviceCards.Count > 0)
         {
             NavDevices.IsExpanded = true;
@@ -113,7 +125,19 @@ public sealed partial class MainPage : Page
         }
     }
 
-    public Task OnWindowRestoredAsync() => ViewModel.RefreshBatteryFromCacheAsync();
+    public async Task OnWindowRestoredAsync()
+    {
+        await ViewModel.Startup.RefreshAsync();
+        await ViewModel.RefreshBatteryFromCacheAsync();
+    }
+
+    private async void OnStartupToggled(object sender, RoutedEventArgs e)
+    {
+        if (sender is ToggleSwitch toggle && ViewModel.Startup.CanChange && toggle.IsOn != ViewModel.Startup.IsOn)
+        {
+            await ViewModel.Startup.SetEnabledCommand.ExecuteAsync(toggle.IsOn);
+        }
+    }
 
     private async void OnDisconnectClick(object sender, RoutedEventArgs e)
     {
@@ -338,7 +362,8 @@ public sealed partial class MainPage : Page
         {
             XamlRoot = XamlRoot,
             Title = LocalizationService.Get("ExperimentalConfirmTitle"),
-            Content = string.Format(LocalizationService.Get("ExperimentalConfirmBody"), feature, value),
+            Content = string.Format(LocalizationService.Get("ExperimentalConfirmBody"),
+                LocalizationService.Get($"FeatureName{feature}")),
             PrimaryButtonText = LocalizationService.Get("SendCommand"),
             CloseButtonText = LocalizationService.Get("Cancel"),
             DefaultButton = ContentDialogButton.Close,
@@ -400,6 +425,29 @@ public sealed partial class MainPage : Page
             .First(item => string.Equals(item.Tag as string, saved, StringComparison.Ordinal));
     }
 
+    private void OnBoseLogoModeSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (BoseLogoModeSelector.SelectedItem is not ComboBoxItem { Tag: string tag } ||
+            !Enum.TryParse<BoseLogoDisplayMode>(tag, ignoreCase: true, out var mode))
+        {
+            return;
+        }
+
+        ViewModel.BoseLogoDisplayMode = mode;
+        ApplicationData.Current.LocalSettings.Values[BoseLogoDisplayModeSettingKey] = mode.ToString();
+    }
+
+    private void ApplySavedBoseLogoDisplayMode()
+    {
+        var saved = ApplicationData.Current.LocalSettings.Values[BoseLogoDisplayModeSettingKey] as string;
+        var mode = Enum.TryParse<BoseLogoDisplayMode>(saved, ignoreCase: true, out var parsed)
+            ? parsed
+            : BoseLogoDisplayMode.ByModel;
+        BoseLogoModeSelector.SelectedItem = BoseLogoModeSelector.Items
+            .OfType<ComboBoxItem>()
+            .First(item => string.Equals(item.Tag as string, mode.ToString(), StringComparison.Ordinal));
+    }
+
     private void UpdateAncSelection()
     {
         _updatingAnc = true;
@@ -415,7 +463,68 @@ public sealed partial class MainPage : Page
 
     private void ResetDeviceControlScroll() =>
         DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
-            DeviceControlScrollViewer.ChangeView(0, 0, null, true));
+        {
+            DevicePageScrollViewer.ChangeView(0, 0, null, true);
+            DeviceControlScrollViewer.ChangeView(0, 0, null, true);
+        });
+
+    private void OnDeviceDetailSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // The full-width page keeps the product and battery visible while controls scroll.
+        var splitView = e.NewSize.Width >= 880;
+        ViewModel.IsDetailSplitView = splitView;
+        DeviceBodyGrid.Height = splitView ? e.NewSize.Height : double.NaN;
+        DeviceBodyGrid.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
+        DeviceBodyGrid.ColumnDefinitions[1].Width = splitView
+            ? new GridLength(1.15, GridUnitType.Star)
+            : new GridLength(0);
+        DeviceBodyGrid.ColumnSpacing = splitView ? 24 : 0;
+        DeviceBodyGrid.RowDefinitions[0].Height = splitView
+            ? new GridLength(1, GridUnitType.Star)
+            : GridLength.Auto;
+        DeviceBodyGrid.RowDefinitions[1].Height = splitView
+            ? new GridLength(0)
+            : GridLength.Auto;
+        DeviceVisualPane.RowDefinitions[0].Height = splitView
+            ? new GridLength(1, GridUnitType.Star)
+            : new GridLength(280);
+        Grid.SetColumn(DeviceControlScrollViewer, splitView ? 1 : 0);
+        Grid.SetRow(DeviceControlScrollViewer, splitView ? 0 : 1);
+        DevicePageScrollViewer.VerticalScrollBarVisibility = splitView
+            ? ScrollBarVisibility.Disabled : ScrollBarVisibility.Auto;
+        DevicePageScrollViewer.VerticalScrollMode = splitView
+            ? ScrollMode.Disabled : ScrollMode.Auto;
+        DeviceControlScrollViewer.VerticalScrollBarVisibility = splitView
+            ? ScrollBarVisibility.Auto : ScrollBarVisibility.Disabled;
+        DeviceControlScrollViewer.VerticalScrollMode = splitView
+            ? ScrollMode.Auto : ScrollMode.Disabled;
+        AutomationProperties.SetAutomationId(DevicePageScrollViewer,
+            splitView ? "DeviceOverviewScroll" : "DeviceControlScroll");
+        AutomationProperties.SetAutomationId(DeviceControlScrollViewer,
+            splitView ? "DeviceControlScroll" : "DeviceFeatureScroll");
+
+        var featureWidth = splitView ? (e.NewSize.Width - 24) * 1.15 / 2.15 : e.NewSize.Width;
+        var twoColumns = featureWidth >= 640;
+        ArrangeFeatureGroup(ListeningFeatureGrid, twoColumns);
+        ArrangeFeatureGroup(SoundFeatureGrid, twoColumns);
+        ArrangeFeatureGroup(WearingFeatureGrid, twoColumns);
+        ArrangeFeatureGroup(ToolsFeatureGrid, twoColumns);
+
+    }
+
+    private static void ArrangeFeatureGroup(Grid group, bool twoColumns)
+    {
+        group.ColumnDefinitions[1].Width = twoColumns
+            ? new GridLength(1, GridUnitType.Star)
+            : new GridLength(0);
+        group.ColumnSpacing = twoColumns ? 12 : 0;
+        for (var index = 0; index < group.Children.Count; index++)
+        {
+            var child = (FrameworkElement)group.Children[index];
+            Grid.SetColumn(child, twoColumns ? index % 2 : 0);
+            Grid.SetRow(child, twoColumns ? index / 2 : index);
+        }
+    }
 
     private void UpdateSpatialSelection()
     {

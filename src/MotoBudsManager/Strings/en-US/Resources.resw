@@ -12,40 +12,40 @@
   <data name="NavDiagnostics.Content" xml:space="preserve"><value>Diagnostics</value></data>
   <data name="NavSettings.Content" xml:space="preserve"><value>Settings &amp; About</value></data>
   <data name="HomeTitle.Text" xml:space="preserve"><value>My earbuds</value></data>
-  <data name="HomeSubtitle.Text" xml:space="preserve"><value>Select earbuds to view details and manage features. Product names and images are matched from model and color data.</value></data>
+  <data name="HomeSubtitle.Text" xml:space="preserve"><value>Choose your earbuds and make listening your own.</value></data>
   <data name="LeftBatteryLabel.Text" xml:space="preserve"><value>Left</value></data>
   <data name="RightBatteryLabel.Text" xml:space="preserve"><value>Right</value></data>
   <data name="CaseBatteryLabel.Text" xml:space="preserve"><value>Case</value></data>
-  <data name="StandardBatteryFormat" xml:space="preserve"><value>Bluetooth battery {0}%</value></data>
-  <data name="StandardBatteryUnavailable" xml:space="preserve"><value>Bluetooth battery unavailable</value></data>
+  <data name="StandardBatteryFormat" xml:space="preserve"><value>Battery {0}%</value></data>
+  <data name="StandardBatteryUnavailable" xml:space="preserve"><value>Battery unavailable</value></data>
   <data name="DevicesTitle.Text" xml:space="preserve"><value>Paired Moto Buds</value></data>
-  <data name="DevicesSubtitle.Text" xml:space="preserve"><value>Only devices already paired in Windows are listed.</value></data>
+  <data name="DevicesSubtitle.Text" xml:space="preserve"><value>Choose your paired earbuds.</value></data>
   <data name="RefreshButton.Content" xml:space="preserve"><value>Refresh</value></data>
   <data name="NoDevicesTitle.Text" xml:space="preserve"><value>No compatible devices found</value></data>
   <data name="NoDevicesBody.Text" xml:space="preserve"><value>Make sure compatible Moto Buds are paired in Windows and within range, then refresh.</value></data>
   <data name="OpenBluetoothButton.Content" xml:space="preserve"><value>Open Bluetooth settings</value></data>
   <data name="DeviceOverview.Header" xml:space="preserve"><value>Device overview</value></data>
-  <data name="DeviceOverview.Description" xml:space="preserve"><value>Model and transport are derived from paired Bluetooth services.</value></data>
+  <data name="DeviceOverview.Description" xml:space="preserve"><value>View earbud information.</value></data>
   <data name="NameLabel.Text" xml:space="preserve"><value>Name</value></data>
   <data name="ModelLabel.Text" xml:space="preserve"><value>Model</value></data>
   <data name="TransportLabel.Text" xml:space="preserve"><value>Transport</value></data>
   <data name="BatteryLabel.Text" xml:space="preserve"><value>Battery</value></data>
   <data name="EvidenceLabel.Text" xml:space="preserve"><value>Evidence</value></data>
   <data name="ConnectionCard.Header" xml:space="preserve"><value>Connection</value></data>
-  <data name="ConnectionCard.Description" xml:space="preserve"><value>Connections are manual and are not restored automatically.</value></data>
+  <data name="ConnectionCard.Description" xml:space="preserve"><value>Manage your earbud connection.</value></data>
   <data name="ConnectButton.Content" xml:space="preserve"><value>Connect</value></data>
   <data name="DisconnectButton.Content" xml:space="preserve"><value>Disconnect</value></data>
   <data name="StableAncCard.Header" xml:space="preserve"><value>Active noise cancellation</value></data>
-  <data name="StableAncCard.Description" xml:space="preserve"><value>Hardware-verified on XT2443-1 over RFCOMM. Every change is read back.</value></data>
+  <data name="StableAncCard.Description" xml:space="preserve"><value>Reduce surrounding noise.</value></data>
   <data name="AncOffItem.Text" xml:space="preserve"><value>Off</value></data>
-  <data name="AncOnItem.Text" xml:space="preserve"><value>Standard ANC</value></data>
+  <data name="AncOnItem.Text" xml:space="preserve"><value>On</value></data>
   <data name="LabTitle.Text" xml:space="preserve"><value>Experimental Lab</value></data>
-  <data name="LabWarning.Title" xml:space="preserve"><value>Unverified private commands</value></data>
-  <data name="LabWarning.Message" xml:space="preserve"><value>These controls come from static reverse engineering. An ACK is not proof of the actual device state.</value></data>
-  <data name="LabAnc.Header" xml:space="preserve"><value>ANC (experimental target)</value></data>
-  <data name="LabAnc.Description" xml:space="preserve"><value>Off or standard ANC for statically whitelisted models.</value></data>
+  <data name="LabWarning.Title" xml:space="preserve"><value>Explore more features</value></data>
+  <data name="LabWarning.Message" xml:space="preserve"><value>Some features may be unavailable on your earbuds.</value></data>
+  <data name="LabAnc.Header" xml:space="preserve"><value>Noise control</value></data>
+  <data name="LabAnc.Description" xml:space="preserve"><value>Reduce surrounding noise.</value></data>
   <data name="LabSpatial.Header" xml:space="preserve"><value>Spatial audio</value></data>
-  <data name="LabSpatial.Description" xml:space="preserve"><value>Off, on, or on with head tracking.</value></data>
+  <data name="LabSpatial.Description" xml:space="preserve"><value>Give sound a sense of space.</value></data>
   <data name="LabHiRes.Header" xml:space="preserve"><value>Hi-Res audio</value></data>
   <data name="LabGaming.Header" xml:space="preserve"><value>Gaming / low latency</value></data>
   <data name="LabAutoVolume.Header" xml:space="preserve"><value>Automatic volume</value></data>
@@ -53,10 +53,10 @@
   <data name="LabVolumeBoost.Header" xml:space="preserve"><value>Volume boost</value></data>
   <data name="LabInEar.Header" xml:space="preserve"><value>In-ear detection</value></data>
   <data name="LabFind.Header" xml:space="preserve"><value>Find earbuds</value></data>
-  <data name="LabFind.Description" xml:space="preserve"><value>Warning: the earbuds may play a loud tone. Playback stops automatically after 30 seconds.</value></data>
-  <data name="SendOff.Content" xml:space="preserve"><value>Send Off</value></data>
-  <data name="SendOn.Content" xml:space="preserve"><value>Send On</value></data>
-  <data name="SendHeadTracking.Content" xml:space="preserve"><value>On + head tracking</value></data>
+  <data name="LabFind.Description" xml:space="preserve"><value>Remove your earbuds before ringing. Stops after 30 seconds.</value></data>
+  <data name="SendOff.Content" xml:space="preserve"><value>Off</value></data>
+  <data name="SendOn.Content" xml:space="preserve"><value>On</value></data>
+  <data name="SendHeadTracking.Content" xml:space="preserve"><value>Head tracking</value></data>
   <data name="FindLeft.Content" xml:space="preserve"><value>Ring left</value></data>
   <data name="FindRight.Content" xml:space="preserve"><value>Ring right</value></data>
   <data name="FindBoth.Content" xml:space="preserve"><value>Ring both</value></data>
@@ -70,17 +70,22 @@
   <data name="ThemeSystem.Content" xml:space="preserve"><value>System default</value></data>
   <data name="ThemeLight.Content" xml:space="preserve"><value>Light</value></data>
   <data name="ThemeDark.Content" xml:space="preserve"><value>Dark</value></data>
+  <data name="BoseLogoCard.Header" xml:space="preserve"><value>Bose branding</value></data>
+  <data name="BoseLogoCard.Description" xml:space="preserve"><value>Choose when the SOUND BY BOSE mark appears on device pages.</value></data>
+  <data name="BoseLogoOff.Content" xml:space="preserve"><value>Off</value></data>
+  <data name="BoseLogoByModel.Content" xml:space="preserve"><value>By model</value></data>
+  <data name="BoseLogoAlways.Content" xml:space="preserve"><value>Always show</value></data>
   <data name="LanguageCard.Header" xml:space="preserve"><value>Language</value></data>
   <data name="LanguageCard.Description" xml:space="preserve"><value>The app follows the Windows display language.</value></data>
   <data name="LanguageValue.Text" xml:space="preserve"><value>English and Simplified Chinese are included.</value></data>
   <data name="PrivacyCard.Header" xml:space="preserve"><value>Privacy</value></data>
-  <data name="PrivacyValue.Text" xml:space="preserve"><value>No telemetry, cloud service, or network upload. Bluetooth addresses are masked in diagnostics; logs are written only when you export them.</value></data>
+  <data name="PrivacyValue.Text" xml:space="preserve"><value>Works offline. Logs are saved only when exported.</value></data>
   <data name="AboutCard.Header" xml:space="preserve"><value>About</value></data>
-  <data name="UnofficialNotice.Text" xml:space="preserve"><value>Unofficial software. Motorola and Moto Buds are trademarks of their respective owners. This app is not affiliated with or endorsed by Motorola.</value></data>
+  <data name="UnofficialNotice.Text" xml:space="preserve"><value>An unofficial Motorola companion app.</value></data>
   <data name="StatusReady" xml:space="preserve"><value>Ready</value></data>
   <data name="StatusReadyMessage" xml:space="preserve"><value>Refresh to find paired earbuds.</value></data>
   <data name="StatusScanning" xml:space="preserve"><value>Scanning paired devices</value></data>
-  <data name="StatusScanningMessage" xml:space="preserve"><value>Reading RFCOMM and GATT services.</value></data>
+  <data name="StatusScanningMessage" xml:space="preserve"><value>Keep your earbuds nearby.</value></data>
   <data name="StatusDevicesFound" xml:space="preserve"><value>Devices found</value></data>
   <data name="StatusDevicesFoundMessage" xml:space="preserve"><value>{0} compatible paired device(s) found.</value></data>
   <data name="StatusNoDevices" xml:space="preserve"><value>No compatible devices found</value></data>
@@ -90,48 +95,48 @@
   <data name="StatusConnected" xml:space="preserve"><value>Connected</value></data>
   <data name="StatusConnectionFailed" xml:space="preserve"><value>Connection failed</value></data>
   <data name="StatusDisconnected" xml:space="preserve"><value>Disconnected</value></data>
-  <data name="StatusDisconnectedMessage" xml:space="preserve"><value>The Bluetooth session has been closed.</value></data>
+  <data name="StatusDisconnectedMessage" xml:space="preserve"><value>The earbud connection is closed.</value></data>
   <data name="StatusConnectionLost" xml:space="preserve"><value>Connection lost</value></data>
   <data name="StatusConnectionLostMessage" xml:space="preserve"><value>The earbuds disconnected from Windows. Check Bluetooth and try again.</value></data>
-  <data name="StatusAncVerified" xml:space="preserve"><value>ANC state verified</value></data>
-  <data name="StatusAncFailed" xml:space="preserve"><value>ANC change failed</value></data>
-  <data name="AncOn" xml:space="preserve"><value>Standard ANC is on.</value></data>
-  <data name="AncOff" xml:space="preserve"><value>ANC is off.</value></data>
-  <data name="StableAncUnavailable" xml:space="preserve"><value>Stable ANC control is available only for connected XT2443-1 RFCOMM devices.</value></data>
+  <data name="StatusAncVerified" xml:space="preserve"><value>Noise control updated</value></data>
+  <data name="StatusAncFailed" xml:space="preserve"><value>Couldn't change noise control</value></data>
+  <data name="AncOn" xml:space="preserve"><value>Noise cancellation is on.</value></data>
+  <data name="AncOff" xml:space="preserve"><value>Noise cancellation is off.</value></data>
+  <data name="StableAncUnavailable" xml:space="preserve"><value>Connect your earbuds first.</value></data>
   <data name="NoDeviceSelected" xml:space="preserve"><value>No device selected</value></data>
   <data name="Unavailable" xml:space="preserve"><value>Unavailable</value></data>
   <data name="EvidenceHardware" xml:space="preserve"><value>Hardware verified</value></data>
   <data name="EvidenceStatic" xml:space="preserve"><value>Static analysis</value></data>
   <data name="EvidenceInferred" xml:space="preserve"><value>Inferred</value></data>
-  <data name="ExperimentalNoCommand" xml:space="preserve"><value>No experimental command sent in this session.</value></data>
-  <data name="ExperimentalAck" xml:space="preserve"><value>ACK received for {0} value {1}; actual device state was not verified.</value></data>
-  <data name="ExperimentalFailed" xml:space="preserve"><value>Experimental command failed: {0}</value></data>
-  <data name="ExperimentalCommandFailed" xml:space="preserve"><value>Experimental command failed</value></data>
+  <data name="ExperimentalNoCommand" xml:space="preserve"><value>Choose a feature to adjust.</value></data>
+  <data name="ExperimentalAck" xml:space="preserve"><value>Change requested: {0}.</value></data>
+  <data name="ExperimentalFailed" xml:space="preserve"><value>Action failed: {0}</value></data>
+  <data name="ExperimentalCommandFailed" xml:space="preserve"><value>Action failed</value></data>
   <data name="ConnectFirst" xml:space="preserve"><value>Connect a compatible device first.</value></data>
   <data name="UnknownError" xml:space="preserve"><value>Unknown error</value></data>
   <data name="LabConsentTitle" xml:space="preserve"><value>Enter Experimental Lab?</value></data>
-  <data name="LabConsentBody" xml:space="preserve"><value>Commands on this page are based on static reverse engineering and may behave differently across firmware versions.</value></data>
+  <data name="LabConsentBody" xml:space="preserve"><value>Some features may be unavailable. Connect your earbuds before continuing.</value></data>
   <data name="LabConsentAccept" xml:space="preserve"><value>Enter lab</value></data>
-  <data name="ExperimentalConfirmTitle" xml:space="preserve"><value>Send private Bluetooth command?</value></data>
-  <data name="ExperimentalConfirmBody" xml:space="preserve"><value>Send {0} with value {1}? The app can confirm only the protocol ACK, not the resulting device state.</value></data>
-  <data name="SendCommand" xml:space="preserve"><value>Send command</value></data>
+  <data name="ExperimentalConfirmTitle" xml:space="preserve"><value>Change this setting?</value></data>
+  <data name="ExperimentalConfirmBody" xml:space="preserve"><value>Adjust “{0}”.</value></data>
+  <data name="SendCommand" xml:space="preserve"><value>Apply</value></data>
   <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="TextFile" xml:space="preserve"><value>Text file</value></data>
   <data name="DeviceFeaturesTitle.Text" xml:space="preserve"><value>Controls</value></data>
   <data name="SettingsToolsTitle.Text" xml:space="preserve"><value>Advanced tools</value></data>
   <data name="SettingsPreferencesTitle.Text" xml:space="preserve"><value>Preferences</value></data>
   <data name="SettingsLabCard.Header" xml:space="preserve"><value>Experimental Lab</value></data>
-  <data name="SettingsLabCard.Description" xml:space="preserve"><value>Manage private commands and features that are not yet stable; confirmation is required.</value></data>
+  <data name="SettingsLabCard.Description" xml:space="preserve"><value>Explore more earbud features.</value></data>
   <data name="OpenSettingsLabButton.Content" xml:space="preserve"><value>Open lab</value></data>
   <data name="SettingsDiagnosticsCard.Header" xml:space="preserve"><value>Diagnostics</value></data>
-  <data name="SettingsDiagnosticsCard.Description" xml:space="preserve"><value>Review the in-memory log and export it only when needed.</value></data>
+  <data name="SettingsDiagnosticsCard.Description" xml:space="preserve"><value>View or export activity logs.</value></data>
   <data name="OpenSettingsDiagnosticsButton.Content" xml:space="preserve"><value>Open diagnostics</value></data>
   <data name="BackToSettingsText.Text" xml:space="preserve"><value>Back to settings</value></data>
   <data name="BatterySummaryFormat" xml:space="preserve"><value>Left {0} · Right {1} · Case {2}</value></data>
   <data name="BatteryChargingFormat" xml:space="preserve"><value>{0} (charging)</value></data>
   <data name="ChargingLabel" xml:space="preserve"><value>Charging</value></data>
   <data name="AncControlCard.Header" xml:space="preserve"><value>Noise control</value></data>
-  <data name="AncTransparencyItem.Text" xml:space="preserve"><value>Transparency</value></data>
+  <data name="AncTransparencyItem.Text" xml:space="preserve"><value>Ambient</value></data>
   <data name="AdaptiveCard.Header" xml:space="preserve"><value>Adaptive hearing</value></data>
   <data name="SpatialCard.Header" xml:space="preserve"><value>Spatial audio</value></data>
   <data name="SpatialOffItem.Text" xml:space="preserve"><value>Off</value></data>
@@ -145,16 +150,16 @@
   <data name="InEarCard.Header" xml:space="preserve"><value>In-ear detection</value></data>
   <data name="DualConnectionCard.Header" xml:space="preserve"><value>Dual connection</value></data>
   <data name="FindEarbudsCard.Header" xml:space="preserve"><value>Find earbuds</value></data>
-  <data name="FindEarbudsCard.Description" xml:space="preserve"><value>Ringing stops automatically after 30 seconds.</value></data>
-  <data name="FitTestCard.Header" xml:space="preserve"><value>Fit test</value></data>
-  <data name="FitTestCard.Description" xml:space="preserve"><value>Check the acoustic seal of the left and right earbuds.</value></data>
-  <data name="RefreshStateCard.Header" xml:space="preserve"><value>Refresh state</value></data>
-  <data name="RefreshStateButton.Content" xml:space="preserve"><value>Read again</value></data>
+  <data name="FindEarbudsCard.Description" xml:space="preserve"><value>Remove earbuds before ringing. Stops after 30 seconds.</value></data>
+  <data name="FitTestCard.Header" xml:space="preserve"><value>Ear tip fit</value></data>
+  <data name="FitTestCard.Description" xml:space="preserve"><value>Find a comfortable, secure fit.</value></data>
+  <data name="RefreshStateCard.Header" xml:space="preserve"><value>Earbud status</value></data>
+  <data name="RefreshStateButton.Content" xml:space="preserve"><value>Refresh</value></data>
   <data name="FitTestStart.Content" xml:space="preserve"><value>Start</value></data>
   <data name="FitTestStop.Content" xml:space="preserve"><value>Stop</value></data>
   <data name="FitTestDialog.Title" xml:space="preserve"><value>Earbud fit test</value></data>
   <data name="FitTestDialog.CloseButtonText" xml:space="preserve"><value>Done</value></data>
-  <data name="FitTestDialogIntro.Text" xml:space="preserve"><value>Wear both earbuds correctly and remain still in a quiet place. The test is performed by the earbud firmware.</value></data>
+  <data name="FitTestDialogIntro.Text" xml:space="preserve"><value>Wear both earbuds and stay still in a quiet place.</value></data>
   <data name="FitTestLeftLabel.Text" xml:space="preserve"><value>Left ear</value></data>
   <data name="FitTestRightLabel.Text" xml:space="preserve"><value>Right ear</value></data>
   <data name="FitTestStopButton.Content" xml:space="preserve"><value>Stop</value></data>
@@ -172,20 +177,20 @@
   <data name="FitTestResultLeftFailed" xml:space="preserve"><value>Adjust the left earbud or try another ear-tip size.</value></data>
   <data name="FitTestResultRightFailed" xml:space="preserve"><value>Adjust the right earbud or try another ear-tip size.</value></data>
   <data name="FitTestResultBothFailed" xml:space="preserve"><value>Adjust both earbuds or try another ear-tip size.</value></data>
-  <data name="FitTestResultUnknown" xml:space="preserve"><value>The earbuds returned an unknown result. Try again and check diagnostics.</value></data>
+  <data name="FitTestResultUnknown" xml:space="preserve"><value>Couldn't complete the test. Adjust your earbuds and try again.</value></data>
   <data name="FeatureToggle.OnContent" xml:space="preserve"><value>On</value></data>
   <data name="FeatureToggle.OffContent" xml:space="preserve"><value>Off</value></data>
-  <data name="UntestedDeviceTitle" xml:space="preserve"><value>Features are not hardware-tested</value></data>
-  <data name="UntestedDeviceBody" xml:space="preserve"><value>{0} ({1}) has not been hardware-verified with this app. Continue to connect it and open the Experimental Lab.</value></data>
-  <data name="Xt2443ControlsUnavailable" xml:space="preserve"><value>Connect an XT2443-1 RFCOMM device.</value></data>
+  <data name="UntestedDeviceTitle" xml:space="preserve"><value>Earbud features</value></data>
+  <data name="UntestedDeviceBody" xml:space="preserve"><value>Explore more features for {0} ({1}).</value></data>
+  <data name="Xt2443ControlsUnavailable" xml:space="preserve"><value>Connect your earbuds first.</value></data>
   <data name="DeviceControlsUnavailable" xml:space="preserve"><value>Connect a compatible device that supports this feature.</value></data>
-  <data name="StatusReadbackVerified" xml:space="preserve"><value>The device state was confirmed by read-back.</value></data>
-  <data name="StaticAdaptationInfo.Title" xml:space="preserve"><value>Static model adaptation</value></data>
-  <data name="StaticAdaptationInfo.Message" xml:space="preserve"><value>Controls shown for this model are based on protocol analysis and have not been hardware-tested in this app.</value></data>
+  <data name="StatusReadbackVerified" xml:space="preserve"><value>Your setting is applied.</value></data>
+  <data name="StaticAdaptationInfo.Title" xml:space="preserve"><value>Earbud features</value></data>
+  <data name="StaticAdaptationInfo.Message" xml:space="preserve"><value>Available features vary by earbud model.</value></data>
   <data name="StatusFeatureUpdated" xml:space="preserve"><value>Setting updated</value></data>
   <data name="StatusFeatureFailed" xml:space="preserve"><value>Setting failed</value></data>
-  <data name="FeatureOn" xml:space="preserve"><value>Enabled and confirmed by read-back.</value></data>
-  <data name="FeatureOff" xml:space="preserve"><value>Disabled and confirmed by read-back.</value></data>
+  <data name="FeatureOn" xml:space="preserve"><value>On.</value></data>
+  <data name="FeatureOff" xml:space="preserve"><value>Off.</value></data>
   <data name="FindEarbudsTitle" xml:space="preserve"><value>Find earbuds</value></data>
   <data name="FindLeftActive" xml:space="preserve"><value>The left earbud is ringing.</value></data>
   <data name="FindRightActive" xml:space="preserve"><value>The right earbud is ringing.</value></data>
@@ -194,9 +199,9 @@
   <data name="FitTestStarted" xml:space="preserve"><value>The test started.</value></data>
   <data name="FitTestStopped" xml:space="preserve"><value>The test stopped.</value></data>
   <data name="StatusRefreshed" xml:space="preserve"><value>State refreshed</value></data>
-  <data name="StatusRefreshedMessage" xml:space="preserve"><value>Earbud state was read again.</value></data>
+  <data name="StatusRefreshedMessage" xml:space="preserve"><value>Earbud information is up to date.</value></data>
   <data name="AncTransparency" xml:space="preserve"><value>Transparency mode is on.</value></data>
-  <data name="CurrentBatteryStatus" xml:space="preserve"><value>Current battery and charging status</value></data>
+  <data name="CurrentBatteryStatus" xml:space="preserve"><value>Battery</value></data>
   <data name="BatteryComponentLeft" xml:space="preserve"><value>left earbud</value></data>
   <data name="BatteryComponentRight" xml:space="preserve"><value>right earbud</value></data>
   <data name="BatteryComponentCase" xml:space="preserve"><value>charging case</value></data>
@@ -207,4 +212,44 @@
   <data name="LowBatteryToastBody" xml:space="preserve"><value>{0}: the lowest earbud battery is {1}%. Charge soon.</value></data>
   <data name="TrayOpenMenuItem.Text" xml:space="preserve"><value>Open Moto Buds Manager</value></data>
   <data name="TrayExitMenuItem.Text" xml:space="preserve"><value>Exit</value></data>
+  <data name="DeviceBatteryTitle.Text" xml:space="preserve"><value>Battery</value></data>
+  <data name="ListeningSectionTitle.Text" xml:space="preserve"><value>Listening</value></data>
+  <data name="SoundSectionTitle.Text" xml:space="preserve"><value>Sound</value></data>
+  <data name="WearingSectionTitle.Text" xml:space="preserve"><value>Wear and connect</value></data>
+  <data name="ToolsSectionTitle.Text" xml:space="preserve"><value>Earbud tools</value></data>
+  <data name="AncControlCard.Description" xml:space="preserve"><value>Reduce noise or hear your surroundings.</value></data>
+  <data name="SpatialCard.Description" xml:space="preserve"><value>Give sound a sense of space.</value></data>
+  <data name="HiResCard.Description" xml:space="preserve"><value>Hear more detail in your music.</value></data>
+  <data name="GamingCard.Description" xml:space="preserve"><value>Keep sound in sync with the action.</value></data>
+  <data name="BassBoostCard.Description" xml:space="preserve"><value>Give the low end more depth.</value></data>
+  <data name="VolumeBoostCard.Description" xml:space="preserve"><value>Increase the available volume.</value></data>
+  <data name="AdaptiveCard.Description" xml:space="preserve"><value>Tailor sound to your hearing.</value></data>
+  <data name="AutomaticVolumeCard.Description" xml:space="preserve"><value>Adjust volume to your surroundings.</value></data>
+  <data name="InEarCard.Description" xml:space="preserve"><value>Pause or play as you remove or wear earbuds.</value></data>
+  <data name="DualConnectionCard.Description" xml:space="preserve"><value>Stay connected to two devices.</value></data>
+  <data name="FeatureNameAnc" xml:space="preserve"><value>Noise control</value></data>
+  <data name="FeatureNameSpatialAudio" xml:space="preserve"><value>Spatial audio</value></data>
+  <data name="FeatureNameHiRes" xml:space="preserve"><value>Hi-Res audio</value></data>
+  <data name="FeatureNameGamingMode" xml:space="preserve"><value>Game mode</value></data>
+  <data name="FeatureNameAutomaticVolume" xml:space="preserve"><value>Automatic volume</value></data>
+  <data name="FeatureNameBassBoost" xml:space="preserve"><value>Bass boost</value></data>
+  <data name="FeatureNameVolumeBoost" xml:space="preserve"><value>Volume boost</value></data>
+  <data name="FeatureNameInEarDetection" xml:space="preserve"><value>In-ear detection</value></data>
+  <data name="FeatureNameFindEarbuds" xml:space="preserve"><value>Find earbuds</value></data>
+  <data name="FeatureNameAdaptiveHearing" xml:space="preserve"><value>Adaptive hearing</value></data>
+  <data name="FeatureNameFitTest" xml:space="preserve"><value>Ear tip fit</value></data>
+  <data name="FeatureNameDualConnection" xml:space="preserve"><value>Dual connection</value></data>
+  <data name="StartupCard.Header" xml:space="preserve"><value>Start silently at sign-in</value></data>
+  <data name="StartupCard.Description" xml:space="preserve"><value>Stay in the system tray when you sign in to Windows, without opening a window.</value></data>
+  <data name="StartupToggleLabel" xml:space="preserve"><value>Start silently at sign-in</value></data>
+  <data name="StartupToggle.OnContent" xml:space="preserve"><value>On</value></data>
+  <data name="StartupToggle.OffContent" xml:space="preserve"><value>Off</value></data>
+  <data name="StartupDisabledByUser" xml:space="preserve"><value>Disabled in Windows. Open Startup apps to enable it again.</value></data>
+  <data name="StartupManagedByPolicy" xml:space="preserve"><value>This setting is managed by system policy.</value></data>
+  <data name="StartupUnavailable" xml:space="preserve"><value>Cannot change sign-in startup right now. Try again later or check Windows Startup apps.</value></data>
+  <data name="OpenStartupSettingsButton.Content" xml:space="preserve"><value>Open Startup apps</value></data>
+  <data name="EarbudConnectedNotificationTitle" xml:space="preserve"><value>Earbuds connected</value></data>
+  <data name="EarbudConnectedNotificationBody" xml:space="preserve"><value>{0} is connected to Windows.</value></data>
+  <data name="AncChangedNotificationTitle" xml:space="preserve"><value>Noise control changed</value></data>
+  <data name="AncChangedNotificationBody" xml:space="preserve"><value>{0}: {1}</value></data>
 </root>

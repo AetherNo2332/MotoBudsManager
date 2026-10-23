@@ -16,6 +16,8 @@ public partial class MainPageViewModel : ObservableObject
     private readonly LowBatteryNotificationService lowBatteryNotifications;
     private int _connectionGeneration;
 
+    public StartupSettingsViewModel Startup { get; } = new(App.Startup, App.Diagnostics);
+
     public MainPageViewModel(
         DeviceDiscoveryService discovery,
         MotoBudsSessionService session,
@@ -29,6 +31,8 @@ public partial class MainPageViewModel : ObservableObject
         session.BatteryStateChanged += OnBatteryStateChanged;
         session.FitTestResultChanged += OnFitTestResultChanged;
         session.Disconnected += OnSessionDisconnected;
+        session.BackgroundConnected += OnBackgroundConnected;
+        App.DeviceMonitor.AncObserved += OnAncObserved;
         lowBatteryNotifications.InAppLowBatteryRequested += OnInAppLowBatteryRequested;
     }
 
@@ -44,6 +48,7 @@ public partial class MainPageViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(EvidenceText))]
     [NotifyPropertyChangedFor(nameof(ProductName))]
     [NotifyPropertyChangedFor(nameof(ProductImageSource))]
+    [NotifyPropertyChangedFor(nameof(DetailProductImageSource))]
     [NotifyPropertyChangedFor(nameof(ProductModelAndColor))]
     [NotifyPropertyChangedFor(nameof(ShowSoundByBose))]
     [NotifyPropertyChangedFor(nameof(IsXt2443ControlsAvailable))]
@@ -156,6 +161,14 @@ public partial class MainPageViewModel : ObservableObject
     public partial bool IsFitTestActive { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowSoundByBose))]
+    public partial BoseLogoDisplayMode BoseLogoDisplayMode { get; set; } = BoseLogoDisplayMode.ByModel;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DetailProductImageSource))]
+    public partial bool IsDetailSplitView { get; set; }
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FitTestActionText))]
     [NotifyPropertyChangedFor(nameof(LeftFitTestStatusText))]
     [NotifyPropertyChangedFor(nameof(RightFitTestStatusText))]
@@ -233,12 +246,17 @@ public partial class MainPageViewModel : ObservableObject
         ? "ms-appx:///Assets/Products/default-tws.webp"
         : $"ms-appx:///Assets/Products/{ProductCatalog.Get(SelectedDevice.ModelId, SelectedDevice.ColorId).ImageFileName}";
 
+    public string DetailProductImageSource => IsDetailSplitView
+        ? ProductImageSource.Replace(".webp", "-case.webp", StringComparison.OrdinalIgnoreCase)
+        : ProductImageSource;
+
     public string ProductModelAndColor => SelectedDevice is null
         ? "—"
         : $"{SelectedDevice.ModelId}  ·  {ProductCatalog.Get(SelectedDevice.ModelId, SelectedDevice.ColorId).ColorName}";
 
-    public bool ShowSoundByBose => SelectedDevice is not null &&
-        ProductCatalog.SupportsSoundByBose(SelectedDevice.ModelId);
+    public bool ShowSoundByBose => ProductCatalog.ShouldShowSoundByBose(
+        SelectedDevice?.ModelId,
+        BoseLogoDisplayMode);
 
     public string ConnectionStatusText => IsConnecting
         ? LocalizationService.Get("StatusConnecting")
@@ -302,7 +320,8 @@ public partial class MainPageViewModel : ObservableObject
             }
 
             OnPropertyChanged(nameof(HasDevices));
-            SelectedDevice = Devices.FirstOrDefault();
+            SelectedDevice = Devices.FirstOrDefault(device => device.BluetoothAddress == session.Device?.BluetoothAddress)
+                ?? Devices.FirstOrDefault();
             // Keep discovery passive for statically adapted models. Their private battery
             // state is queried only after the user explicitly opens a device session.
             foreach (var card in DeviceCards.Where(card => card.Device.IsXt2443ControlTarget))
@@ -398,6 +417,12 @@ public partial class MainPageViewModel : ObservableObject
         {
             await ConnectAsync();
         }
+        else if (session.Client is { } client)
+        {
+            IsBusy = true;
+            try { await LoadDeviceStateAsync(client); }
+            finally { IsBusy = false; }
+        }
 
         return IsConnected && session.Device?.BluetoothAddress == device.BluetoothAddress;
     }
@@ -405,6 +430,10 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     private async Task DisconnectAsync()
     {
+        if (session.Device is { } device)
+        {
+            App.DeviceMonitor.SuppressUntilWindowsReconnect(device.BluetoothAddress);
+        }
         Interlocked.Increment(ref _connectionGeneration);
         IsBusy = true;
         IsConnecting = false;
@@ -658,7 +687,8 @@ public partial class MainPageViewModel : ObservableObject
         {
             var result = await session.Client.SetExperimentalFeatureAsync(feature, value);
             ExperimentalStatus = result.Success
-                ? string.Format(LocalizationService.Get("ExperimentalAck"), feature, value)
+                ? string.Format(LocalizationService.Get("ExperimentalAck"),
+                    LocalizationService.Get($"FeatureName{feature}"))
                 : string.Format(LocalizationService.Get("ExperimentalFailed"), result.Error);
             if (!result.Success)
             {
@@ -760,7 +790,6 @@ public partial class MainPageViewModel : ObservableObject
 
     private async Task RefreshHomeBatteryAsync(DeviceCardViewModel card)
     {
-        var temporaryConnection = false;
         try
         {
             if (session.IsConnected)
@@ -773,7 +802,7 @@ public partial class MainPageViewModel : ObservableObject
             else
             {
                 await session.ConnectAsync(card.Device);
-                temporaryConnection = true;
+                diagnostics.Write($"Home battery session retained for {card.Device.ModelId}.");
             }
 
             if (session.TryGetCachedBatteryState(out var state))
@@ -784,13 +813,6 @@ public partial class MainPageViewModel : ObservableObject
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             diagnostics.Write($"Home battery refresh failed for {card.Device.ModelId}: {exception.Message}");
-        }
-        finally
-        {
-            if (temporaryConnection)
-            {
-                await session.DisconnectAsync();
-            }
         }
     }
 
@@ -836,6 +858,26 @@ public partial class MainPageViewModel : ObservableObject
 
     private void OnBatteryStateChanged(object? sender, BatteryStateChangedEventArgs args) =>
         RunOnUiThread(() => ApplyBatteryState(args.Device, args.State));
+
+    private void OnBackgroundConnected(object? sender, MotoBudsDevice device) =>
+        RunOnUiThread(() =>
+        {
+            if (IsBusy) { return; }
+            SelectedDevice = device;
+            IsConnected = true;
+            IsConnecting = false;
+            if (session.TryGetCachedBatteryState(out var battery)) { ApplyBatteryState(device, battery); }
+        });
+
+    private void OnAncObserved(object? sender, AncObservation observation) =>
+        RunOnUiThread(() =>
+        {
+            if (!IsBusy && SelectedDevice?.BluetoothAddress == observation.Device.BluetoothAddress &&
+                session.Device?.BluetoothAddress == observation.Device.BluetoothAddress)
+            {
+                AncMode = observation.State.Mode;
+            }
+        });
 
     private void OnFitTestResultChanged(object? sender, FitTestResultChangedEventArgs args) =>
         RunOnUiThread(() =>

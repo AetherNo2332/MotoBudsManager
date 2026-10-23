@@ -110,6 +110,7 @@ public sealed partial class MainWindow : Window
 
         _cleanupCompleted = true;
         TrayIcon.Dispose();
+        await App.DeviceMonitor.DisposeAsync();
         await App.Session.DisposeAsync();
         await App.LowBatteryNotifications.ShutdownAsync();
     }

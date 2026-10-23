@@ -14,6 +14,8 @@ An unofficial, offline WinUI 3 desktop application for managing Motorola earbuds
 - Uses the proprietary battery protocol: a connection snapshot plus real-time firmware updates, with no fixed polling.
 - Shows one in-app warning at 6–10%; at 0–5%, sends a Windows notification only when a low earbud is not charging. The case is excluded.
 - Keeps an active earbud session running in the notification area when the window is closed; use the tray menu to reopen or exit.
+- Offers **Start silently at sign-in** in Settings (off by default). Windows sign-in starts a tray-only instance; opening the app restores the existing window. Windows Startup apps and policy restrictions are respected.
+- Automatically opens a management session for compatible earbuds connected to Windows. Checks connection/ANC status every two seconds and notifies on connection or ANC mode changes; the first ANC reading is a baseline. Manual disconnect pauses automatic reconnection until the next Windows Bluetooth reconnect.
 - Supports English, Simplified Chinese, light/dark themes, and a responsive 760 × 600 minimum window.
 - Keeps diagnostics in memory, masks Bluetooth addresses, and performs no telemetry or network upload.
 

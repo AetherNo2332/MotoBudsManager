@@ -1,6 +1,7 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
+using MotoBudsManager.Core;
 using System.Runtime.InteropServices;
 
 namespace MotoBudsManager;
@@ -10,6 +11,7 @@ public static class Program
     private const string MainInstanceKey = "MotoBudsManager.MainInstance";
 
     internal static AppInstance MainInstance { get; private set; } = null!;
+    internal static bool StartInBackground { get; private set; }
 
     [STAThread]
     public static int Main(string[] args)
@@ -18,10 +20,15 @@ public static class Program
 
         var currentInstance = AppInstance.GetCurrent();
         var activatedArgs = currentInstance.GetActivatedEventArgs();
+        StartInBackground = StartupLaunchPolicy.ShouldStartHidden(
+            activatedArgs.Kind == ExtendedActivationKind.StartupTask, args);
         var mainInstance = AppInstance.FindOrRegisterForKey(MainInstanceKey);
         if (!mainInstance.IsCurrent)
         {
-            RedirectActivationTo(activatedArgs, mainInstance);
+            if (!StartInBackground)
+            {
+                RedirectActivationTo(activatedArgs, mainInstance);
+            }
             return 0;
         }
 

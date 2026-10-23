@@ -47,11 +47,12 @@ public sealed class FitTestResultChangedEventArgs(
     public FitTestResult Result { get; } = result;
 }
 
-public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTestMode = false) : IAsyncDisposable
+public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTestMode = false) : IAsyncDisposable, IEarbudMonitoringSession
 {
     private readonly bool _isTestMode = isTestMode;
     private readonly BatteryStateCache _batteryCache = new();
     private readonly SemaphoreSlim _batteryQueryGate = new(1, 1);
+    private readonly SemaphoreSlim _sessionGate = new(1, 1);
     private IMotoBudsTransport? _transport;
     private RequestDispatcher? _dispatcher;
     private int _disconnectRaised;
@@ -61,16 +62,59 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
     public event EventHandler<FitTestResultChangedEventArgs>? FitTestResultChanged;
 
     public event EventHandler<SessionDisconnectedEventArgs>? Disconnected;
+    public event EventHandler<MotoBudsDevice>? BackgroundConnected;
 
     public MotoBudsDevice? Device { get; private set; }
 
     public MotoBudsClient? Client { get; private set; }
 
     public bool IsConnected => _transport?.IsConnected == true;
+    public object? SessionIdentity => Client;
 
     public async Task ConnectAsync(MotoBudsDevice device, CancellationToken cancellationToken = default)
     {
-        await DisconnectAsync().ConfigureAwait(false);
+        await _sessionGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try { await ConnectCoreAsync(device, cancellationToken).ConfigureAwait(false); }
+        finally { _sessionGate.Release(); }
+    }
+
+    public async Task<bool> TryConnectForMonitoringAsync(MotoBudsDevice device, CancellationToken cancellationToken)
+    {
+        if (!await _sessionGate.WaitAsync(0, cancellationToken).ConfigureAwait(false)) { return false; }
+        try
+        {
+            if (IsConnected) { return Device?.BluetoothAddress == device.BluetoothAddress; }
+            await ConnectCoreAsync(device, cancellationToken).ConfigureAwait(false);
+            BackgroundConnected?.Invoke(this, device);
+            return true;
+        }
+        finally { _sessionGate.Release(); }
+    }
+
+    public async Task<AncState> ReadAncStateAsync(CancellationToken cancellationToken)
+    {
+        await _sessionGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var client = Client ?? throw new IOException("The management session is disconnected.");
+            return await client.GetAncStateAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally { _sessionGate.Release(); }
+    }
+
+    public Task DisconnectForMonitoringAsync() => DisconnectAsync();
+
+    private async Task ConnectCoreAsync(MotoBudsDevice device, CancellationToken cancellationToken)
+    {
+        if (IsConnected &&
+            Device?.BluetoothAddress == device.BluetoothAddress &&
+            Client is not null)
+        {
+            log.Write($"Reusing active session for {device.Name} ({device.MaskedAddress}).");
+            return;
+        }
+
+        await DisconnectCoreAsync().ConfigureAwait(false);
 #if DEBUG
         if (_isTestMode)
         {
@@ -114,7 +158,7 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
         {
             try
             {
-                await DisconnectAsync().ConfigureAwait(false);
+                await DisconnectCoreAsync().ConfigureAwait(false);
             }
             catch (Exception cleanupException)
             {
@@ -155,6 +199,13 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
     }
 
     public async Task DisconnectAsync()
+    {
+        await _sessionGate.WaitAsync().ConfigureAwait(false);
+        try { await DisconnectCoreAsync().ConfigureAwait(false); }
+        finally { _sessionGate.Release(); }
+    }
+
+    private async Task DisconnectCoreAsync()
     {
         var disconnectedDevice = Device;
         if (Client is { HasTransientActions: true } && disconnectedDevice is not null)
@@ -212,6 +263,7 @@ public sealed class MotoBudsSessionService(DiagnosticLogService log, bool isTest
     {
         await DisconnectAsync().ConfigureAwait(false);
         _batteryQueryGate.Dispose();
+        _sessionGate.Dispose();
     }
 
     private async Task<EarbudBatteryState?> QueryBatterySnapshotAsync(CancellationToken cancellationToken)

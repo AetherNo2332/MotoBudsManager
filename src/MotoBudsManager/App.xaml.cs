@@ -44,6 +44,9 @@ public partial class App : Application
     public static LowBatteryNotificationService LowBatteryNotifications { get; } =
         new(Diagnostics, IsTestMode);
 
+    public static StartupRegistrationController Startup { get; } = new(new WindowsStartupTaskRegistration());
+    public static EarbudMonitoringService DeviceMonitor { get; } = new(Discovery, Session, Diagnostics, IsTestMode);
+
     public static string AppVersionText { get; } = PackageVersionReader.GetDisplayText(
         "Moto Buds Manager",
         Path.Combine(AppContext.BaseDirectory, "AppxManifest.xml"));
@@ -88,10 +91,18 @@ public partial class App : Application
         DispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
         LowBatteryNotifications.Initialize();
         Window = new MainWindow();
+        DeviceMonitor.Start();
         Diagnostics.Write(IsTestMode
             ? "Moto Buds Manager started in DEBUG fake-device mode."
             : "Moto Buds Manager started. No telemetry or network service is enabled.");
-        Window.Activate();
+        if (!Program.StartInBackground)
+        {
+            Window.Activate();
+        }
+        else
+        {
+            Diagnostics.Write("Started silently in the notification area; Windows-connected earbuds are monitored automatically.");
+        }
         if (Interlocked.Exchange(ref _activationPending, 0) != 0)
         {
             RestoreExistingWindow();
@@ -100,6 +111,10 @@ public partial class App : Application
 
     private void OnMainInstanceActivated(object? sender, AppActivationArguments args)
     {
+        if (args.Kind == ExtendedActivationKind.StartupTask)
+        {
+            return;
+        }
         if (DispatcherQueue is null || Window is not MainWindow)
         {
             Interlocked.Exchange(ref _activationPending, 1);

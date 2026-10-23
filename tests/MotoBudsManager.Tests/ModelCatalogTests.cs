@@ -110,6 +110,18 @@ public sealed class ModelCatalogTests
     }
 
     [Theory]
+    [InlineData("XT2641-1", BoseLogoDisplayMode.Off, false)]
+    [InlineData("XT2641-1", BoseLogoDisplayMode.ByModel, true)]
+    [InlineData("XT2443-1", BoseLogoDisplayMode.ByModel, false)]
+    [InlineData("XT2443-1", BoseLogoDisplayMode.Always, true)]
+    [InlineData(null, BoseLogoDisplayMode.Always, false)]
+    public void ProductCatalog_AppliesBoseLogoDisplayMode(
+        string? model,
+        BoseLogoDisplayMode mode,
+        bool expected) =>
+        Assert.Equal(expected, ProductCatalog.ShouldShowSoundByBose(model, mode));
+
+    [Theory]
     [InlineData(0, "00 00")]
     [InlineData(1, "01 00")]
     [InlineData(2, "01 01")]
